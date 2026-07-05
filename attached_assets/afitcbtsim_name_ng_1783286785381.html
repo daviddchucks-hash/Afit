@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+      Admin Command Center - AFIT CBT Simulator
+    </title>
+    <link rel="icon" type="image/svg+xml" href="../static/img/afitcbtsim-logo.svg" />
+    <link rel="icon" type="image/png" sizes="512x512" href="../static/img/afitcbtsim-logo.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="../static/img/afitcbtsim-logo1.png" />
+    <link rel="apple-touch-icon" href="../static/img/apple-touch-icon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../static/main.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js">
+    </script>
+    <style>
+      body { background-color: #f8fafc; color: #0f172a; font-family: &#39;Poppins&#39;, sans-serif; margin: 0; padding: 0; }
+        
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        #auth-loader {
+            position: fixed; inset: 0; background: #0f172a; z-index: 9999;
+            display: flex; flex-direction: column; justify-content: center; align-items: center; color: white;
+        }
+
+        #admin-dashboard { display: none; }
+        
+        .admin-nav {
+            height: 60px; background: white; display: flex; justify-content: space-between; align-items: center;
+            padding: 0 1rem; border-bottom: 1px solid #e2e8f0; position: sticky; top: 0; z-index: 100;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+        
+        .admin-nav-title { font-weight: 800; font-size: 1.1rem; color: #1e293b; display: flex; align-items: center; gap: 8px; }
+        
+        .admin-wrapper { max-width: 1400px; margin: 1.5rem auto; padding: 0 1rem; }
+
+        .header-actions {
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 10px;
+        }
+
+        /* KPI CARDS */
+        .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+        .kpi-card {
+            background: white; padding: 1.2rem; border-radius: 16px; border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); display: flex; flex-direction: column;
+            position: relative; overflow: hidden;
+        }
+        .kpi-card::before { content: &#39;&#39;; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: #cbd5e1; }
+        .kpi-card.blue::before { background: #2563eb; }
+        .kpi-card.green::before { background: #10b981; }
+        .kpi-card.purple::before { background: #8b5cf6; }
+        .kpi-card.orange::before { background: #f97316; }
+
+        .kpi-title { color: #64748b; font-size: 0.75rem; text-transform: uppercase; font-weight: 700; margin-bottom: 4px; }
+        .kpi-value { font-size: 1.8rem; font-weight: 800; color: #0f172a; line-height: 1; }
+
+        /* TABS */
+        .tabs-container { margin-bottom: 1rem; display: flex; gap: 8px; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; overflow-x: auto;}
+        .tab-btn {
+            background: transparent; border: none; padding: 0.6rem 1rem; font-family: &#39;Poppins&#39;; font-weight: 700;
+            font-size: 0.9rem; color: #64748b; cursor: pointer; border-radius: 6px; transition: all 0.2s; white-space: nowrap;
+        }
+        .tab-btn:hover { background: #f1f5f9; color: #0f172a; }
+        .tab-btn.active { background: #2563eb; color: white; }
+
+        /* DATA PANELS */
+        .data-panel {
+            background: white; padding: 1rem; border-radius: 16px; border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); display: none;
+        }
+        .data-panel.active { display: block; }
+        
+        .table-container { width: 100%; overflow-x: auto; max-height: 60vh; }
+
+        /* DEMOGRAPHICS GRID */
+        .demo-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem;
+        }
+        .course-stat-card {
+            background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1rem;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .course-name { font-weight: 600; color: #1e293b; font-size: 0.9rem; word-break: break-word; padding-right: 10px;}
+        .course-count { background: #dbeafe; color: #1e40af; padding: 0.4rem 0.8rem; border-radius: 20px; font-weight: 800; font-size: 0.9rem; flex-shrink: 0;}
+
+        /* BUTTONS */
+        .btn-action {
+            background: white; border: 1px solid #cbd5e1; padding: 0.6rem 1rem; border-radius: 8px; 
+            font-weight: 600; cursor: pointer; color: #1e293b; transition: all 0.2s; font-family: &#39;Poppins&#39;; font-size: 0.85rem;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .btn-action:hover { background: #f1f5f9; }
+        .btn-primary { background: #2563eb; color: white; border: none; }
+        .btn-primary:hover { background: #1d4ed8; }
+        .btn-danger { background: #fef2f2; border: 1px solid #fecaca; color: #dc2626; }
+
+        /* TABLES */
+        .admin-table { width: 100%; border-collapse: collapse; text-align: left; }
+        .admin-table th { 
+            color: #64748b; font-size: 0.75rem; text-transform: uppercase; padding: 0.8rem 0.5rem; 
+            border-bottom: 2px solid #e2e8f0; position: sticky; top: 0; background: #f8fafc; z-index: 10;
+            font-weight: 700; white-space: nowrap;
+        }
+        .admin-table td { padding: 0.8rem 0.5rem; border-bottom: 1px solid #f1f5f9; font-weight: 500; color: #334155; font-size: 0.85rem; white-space: nowrap;}
+        
+        /* 🚀 HIDDEN CAPTURE AREA FOR IMAGE GENERATION */
+        #capture-area {
+            position: absolute; left: -9999px; top: 0; width: 600px;
+            background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+            color: white; padding: 40px; border-radius: 20px; font-family: &#39;Poppins&#39;, sans-serif; box-sizing: border-box; z-index: -100;
+        }
+        .report-header { border-bottom: 2px solid rgba(255,255,255,0.1); padding-bottom: 20px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center;}
+        .report-title { margin: 0; font-size: 1.8rem; font-weight: 800; }
+        .report-date { background: rgba(255,255,255,0.1); padding: 5px 12px; border-radius: 6px; font-weight: 600; font-size: 0.9rem; display: inline-block;}
+        .report-total { margin-top: 8px; font-size: 0.85rem; color: #bae6fd; font-weight: 600; text-align: right;}
+        
+        .report-row { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05); padding: 15px 20px; border-radius: 12px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.1); }
+        .r-rank { font-size: 1.2rem; font-weight: 800; color: #93c5fd; width: 30px;}
+        .r-name { font-weight: 700; font-size: 1.1rem; flex-grow: 1; margin: 0 15px;}
+        .r-course { font-size: 0.85rem; color: #cbd5e1; font-weight: 500; display: block;}
+        .r-score { background: #2563eb; padding: 8px 15px; border-radius: 8px; font-weight: 800; font-size: 1.2rem;}
+
+        /* MOBILE ADJUSTMENTS */
+        @media (max-width: 600px) {
+            .header-actions { flex-direction: column; align-items: stretch; }
+            .btn-action { justify-content: center; }
+        }
+    </style>
+  </head>
+  <body>
+    <div id="auth-loader">
+      <svg class="animate-spin" style="width: 40px; height: 40px; color: #38bdf8; margin-bottom: 15px;" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
+        </circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+        </path>
+      </svg>
+      <h3 style="margin:0; font-size: 1.1rem;">
+        Verifying Clearance...
+      </h3>
+    </div>
+    <div id="capture-area">
+      <div class="report-header">
+        <div>
+          <h2 class="report-title">
+            Daily Top Scorers
+          </h2>
+          <p style="margin: 0; color: #93c5fd; font-size: 0.95rem;">
+            AFIT CBT Simulator
+          </p>
+        </div>
+        <div style="text-align: right;">
+          <div class="report-date" id="img-date">
+            --
+          </div>
+          <div class="report-total" id="img-total-exams">
+            0 Exams Taken Today
+          </div>
+        </div>
+      </div>
+      <div id="img-list">
+      </div>
+      <div style="text-align: center; margin-top: 30px; font-size: 0.85rem; color: #94a3b8; font-weight: 500; text-transform: uppercase; letter-spacing: 1px;">
+        Powered by brightsitedev
+      </div>
+    </div>
+    <div id="admin-dashboard">
+      <nav class="admin-nav">
+        <div class="admin-nav-title">
+          <svg width="24" height="24" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="100" height="100" rx="22" fill="#2563eb">
+            </rect>
+            <path d="M50 20 L22 75 H36 L43 60 H57 L64 75 H78 L50 20 Z" fill="#ffffff">
+            </path>
+          </svg>
+          ADMIN PANEL
+        </div>
+        <button onclick="adminLogout()" class="btn-action btn-danger">
+          Disconnect
+        </button>
+      </nav>
+      <div class="admin-wrapper">
+        <div class="header-actions">
+          <div>
+            <h1 style="margin: 0; font-size: 1.5rem; color: #0f172a;">
+              Live Telemetry
+            </h1>
+          </div>
+          <div style="display: flex; gap: 10px;">
+            <button onclick="fetchAdminData()" class="btn-action">
+              🔄 Refresh
+            </button>
+            <button onclick="downloadDailyReport()" class="btn-action btn-primary" id="dl-btn">
+              📸 Download Daily Report
+            </button>
+          </div>
+        </div>
+        <div class="kpi-grid">
+          <div class="kpi-card blue">
+            <span class="kpi-title">            Total Users
+</span>
+            <span class="kpi-value" id="kpi-users">            0
+</span>
+          </div>
+          <div class="kpi-card purple">
+            <span class="kpi-title">            Exams Taken (All Time)
+</span>
+            <span class="kpi-value" id="kpi-exams">            0
+</span>
+          </div>
+          <div class="kpi-card orange">
+            <span class="kpi-title">            Exams Taken Today
+</span>
+            <span class="kpi-value" id="kpi-today">            0
+</span>
+          </div>
+          <div class="kpi-card green">
+            <span class="kpi-title">            Premium Users
+</span>
+            <span class="kpi-value" id="kpi-premium">            0
+</span>
+          </div>
+        </div>
+        <div class="tabs-container">
+          <button class="tab-btn active" onclick="switchTab(&#39;demographics&#39;)">
+            Aspirant Demographics
+          </button>
+          <button class="tab-btn" onclick="switchTab(&#39;results&#39;)">
+            Exam Results Log
+          </button>
+        </div>
+        <div id="tab-demographics" class="data-panel active">
+          <div class="demo-grid" id="course-body">
+            <div style="grid-column: 1 / -1; text-align: center; color: #94a3b8; padding: 2rem;">
+              Loading data...
+            </div>
+          </div>
+        </div>
+        <div id="tab-results" class="data-panel">
+          <div class="table-container">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>
+                    Aspirant
+                  </th>
+                  <th>
+                    Total Score
+                  </th>
+                  <th>
+                    ENG
+                  </th>
+                  <th>
+                    MTH
+                  </th>
+                  <th>
+                    PHY
+                  </th>
+                  <th>
+                    CHM
+                  </th>
+                  <th>
+                    GNS
+                  </th>
+                  <th>
+                    ECO
+                  </th>
+                  <th>
+                    LIT
+                  </th>
+                  <th>
+                    GOV
+                  </th>
+                  <th>
+                    COM
+                  </th>
+                  <th>
+                    Time Submitted
+                  </th>
+                </tr>
+              </thead>
+              <tbody id="results-body">
+                <tr>
+                  <td colspan="12" style="text-align: center; color: #94a3b8; padding: 2rem;">
+                    Loading data...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+    </script>
+    <script src="../static/app.js">
+    </script>
+    <script>
+      // 🚀 ADMIN FAILSAFE
+        if (typeof supabaseClient === &#39;undefined&#39;) {
+            const supabaseUrl = &#39;PASTE_YOUR_SUPABASE_URL_HERE&#39;;
+            const supabaseKey = &#39;PASTE_YOUR_SUPABASE_ANON_KEY_HERE&#39;;
+            window.supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+        }
+
+        // Global variables for image generation
+        let todayTopScorers = [];
+
+        document.addEventListener(&#34;DOMContentLoaded&#34;, async () =&gt; {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            
+            if (!session) {
+                window.location.href = &#39;../login/index.html?mode=admin&#39;;
+                return;
+            }
+
+            const { data: profile } = await supabaseClient.from(&#39;profiles&#39;).select(&#39;role&#39;).eq(&#39;id&#39;, session.user.id).single();
+            
+            if (!profile || profile.role !== &#39;admin&#39;) {
+                alert(&#34;SECURITY LOCKOUT: Your account does not have administrative privileges.&#34;);
+                window.location.href = &#39;../dashboard/index.html&#39;;
+                return;
+            }
+
+            document.getElementById(&#39;auth-loader&#39;).style.display = &#39;none&#39;;
+            document.getElementById(&#39;admin-dashboard&#39;).style.display = &#39;block&#39;;
+            
+            // Set Date for Image
+            document.getElementById(&#39;img-date&#39;).innerText = new Date().toLocaleDateString(&#39;en-US&#39;, { weekday: &#39;short&#39;, month: &#39;short&#39;, day: &#39;numeric&#39; });
+            
+            fetchAdminData();
+        });
+
+        function switchTab(tabName) {
+            document.querySelectorAll(&#39;.tab-btn&#39;).forEach(btn =&gt; btn.classList.remove(&#39;active&#39;));
+            document.querySelectorAll(&#39;.data-panel&#39;).forEach(panel =&gt; panel.classList.remove(&#39;active&#39;));
+            
+            event.target.classList.add(&#39;active&#39;);
+            document.getElementById(`tab-${tabName}`).classList.add(&#39;active&#39;);
+        }
+
+        async function fetchAdminData() {
+            try {
+                // --- 1. CALCULATE EXACT KPIs (Bypassing 1000 Limit) ---
+                const pTotalUsers = supabaseClient.from(&#39;profiles&#39;).select(&#39;*&#39;, { count: &#39;exact&#39;, head: true });
+                const pPremiumUsers = supabaseClient.from(&#39;profiles&#39;).select(&#39;*&#39;, { count: &#39;exact&#39;, head: true }).eq(&#39;has_paid&#39;, true);
+                const pTotalExams = supabaseClient.from(&#39;results&#39;).select(&#39;*&#39;, { count: &#39;exact&#39;, head: true });
+
+                const startOfDay = new Date();
+                startOfDay.setHours(0, 0, 0, 0);
+                const pTodayExams = supabaseClient.from(&#39;results&#39;)
+                    .select(&#39;*, profiles(full_name, course_applied)&#39;)
+                    .gte(&#39;submitted_at&#39;, startOfDay.toISOString());
+
+                // 🚀 FIX: Fetching ONLY the 100 most recent results to keep table fast!
+                const pRecentResults = supabaseClient.from(&#39;results&#39;)
+                    .select(&#39;*, profiles(full_name, course_applied)&#39;)
+                    .order(&#39;submitted_at&#39;, { ascending: false })
+                    .limit(100); 
+
+                // Note: Fetching course applied for demographics calculation
+                const pDemographics = supabaseClient.from(&#39;profiles&#39;).select(&#39;course_applied&#39;);
+
+                // Run all queries simultaneously for extreme speed
+                const [
+                    { count: totalUsers }, 
+                    { count: premiumUsers }, 
+                    { count: totalExams }, 
+                    { data: todayResults },
+                    { data: recentResults },
+                    { data: profiles }
+                ] = await Promise.all([pTotalUsers, pPremiumUsers, pTotalExams, pTodayExams, pRecentResults, pDemographics]);
+
+                const examsToday = todayResults ? todayResults.length : 0;
+
+                // Inject KPI Values
+                document.getElementById(&#39;kpi-users&#39;).innerText = totalUsers || 0;
+                document.getElementById(&#39;kpi-premium&#39;).innerText = premiumUsers || 0;
+                document.getElementById(&#39;kpi-exams&#39;).innerText = totalExams || 0;
+                document.getElementById(&#39;kpi-today&#39;).innerText = examsToday;
+                
+                document.getElementById(&#39;img-total-exams&#39;).innerText = `${examsToday} Exams Taken Today`;
+
+                // Prepare Top 5 Scorers for Image Generation (from today&#39;s results)
+                todayTopScorers = [];
+                if (todayResults &amp;&amp; todayResults.length &gt; 0) {
+                    const sortedToday = [...todayResults].sort((a, b) =&gt; b.total_score - a.total_score);
+                    todayTopScorers = sortedToday.slice(0, 5);
+                }
+
+                // --- 2. POPULATE DEMOGRAPHICS (Course Grouping) ---
+                const courseCounts = {};
+                if (profiles) {
+                    profiles.forEach(p =&gt; {
+                        if (p.course_applied) {
+                            // Clean up the name (remove brackets if any)
+                            const cleanName = p.course_applied.replace(/\[.*?\]/g, &#39;&#39;).trim();
+                            courseCounts[cleanName] = (courseCounts[cleanName] || 0) + 1;
+                        }
+                    });
+                }
+
+                const courseBody = document.getElementById(&#39;course-body&#39;);
+                courseBody.innerHTML = &#39;&#39;;
+                
+                const courseArray = Object.keys(courseCounts).map(key =&gt; ({ name: key, count: courseCounts[key] }));
+                courseArray.sort((a, b) =&gt; b.count - a.count);
+
+                if (courseArray.length === 0) {
+                    courseBody.innerHTML = &#39;&lt;div style=&#34;grid-column: 1 / -1; text-align: center; color: #94a3b8; padding: 2rem;&#34;&gt;No demographic data available.&lt;/div&gt;&#39;;
+                } else {
+                    courseArray.forEach(course =&gt; {
+                        courseBody.innerHTML += `
+                            &lt;div class=&#34;course-stat-card&#34;&gt;
+                                &lt;span class=&#34;course-name&#34;&gt;${course.name}&lt;/span&gt;
+                                &lt;span class=&#34;course-count&#34;&gt;${course.count} Candidates&lt;/span&gt;
+                            &lt;/div&gt;
+                        `;
+                    });
+                }
+
+                // --- 3. POPULATE RESULTS TABLE (Capped at 100) ---
+                const rBody = document.getElementById(&#39;results-body&#39;);
+                rBody.innerHTML = &#39;&#39;;
+                
+                if (!recentResults || recentResults.length === 0) {
+                    rBody.innerHTML = &#39;&lt;tr&gt;&lt;td colspan=&#34;12&#34; style=&#34;text-align: center; color: #94a3b8; padding: 2rem;&#34;&gt;No exams taken yet.&lt;/td&gt;&lt;/tr&gt;&#39;;
+                } else {
+                    recentResults.forEach(r =&gt; {
+                        const dateObj = new Date(r.submitted_at);
+                        const timeStr = dateObj.toLocaleDateString(&#39;en-US&#39;, { month: &#39;short&#39;, day: &#39;numeric&#39; }) + &#39; &#39; + dateObj.toLocaleTimeString(&#39;en-US&#39;, { hour: &#39;2-digit&#39;, minute: &#39;2-digit&#39; });
+                        
+                        const aspirantName = r.profiles ? r.profiles.full_name : &#39;Unknown&#39;;
+                        const f = (score) =&gt; score &gt; 0 ? `&lt;span style=&#34;color:#0f172a; font-weight:700;&#34;&gt;${score}&lt;/span&gt;` : `&lt;span style=&#34;color:#cbd5e1;&#34;&gt;-&lt;/span&gt;`;
+
+                        rBody.innerHTML += `
+                            &lt;tr&gt;
+                                &lt;td style=&#34;font-weight: 700; color: #0f172a;&#34;&gt;${aspirantName}&lt;/td&gt;
+                                &lt;td&gt;&lt;span style=&#34;background: #eff6ff; color: #2563eb; padding: 4px 10px; border-radius: 8px; font-weight: 800;&#34;&gt;${r.total_score} / 50&lt;/span&gt;&lt;/td&gt;
+                                &lt;td&gt;${f(r.english_score)}&lt;/td&gt;
+                                &lt;td&gt;${f(r.math_score)}&lt;/td&gt;
+                                &lt;td&gt;${f(r.physics_score)}&lt;/td&gt;
+                                &lt;td&gt;${f(r.chemistry_score)}&lt;/td&gt;
+                                &lt;td&gt;${f(r.gns_score)}&lt;/td&gt;
+                                &lt;td&gt;${f(r.economics_score)}&lt;/td&gt;
+                                &lt;td&gt;${f(r.literature_score)}&lt;/td&gt;
+                                &lt;td&gt;${f(r.government_score)}&lt;/td&gt;
+                                &lt;td&gt;${f(r.commerce_score)}&lt;/td&gt;
+                                &lt;td style=&#34;color: #64748b; font-size: 0.75rem;&#34;&gt;${timeStr}&lt;/td&gt;
+                            &lt;/tr&gt;
+                        `;
+                    });
+                }
+
+            } catch (err) {
+                console.error(&#34;Dashboard Error:&#34;, err);
+                alert(&#34;Failed to load telemetry. Check console.&#34;);
+            }
+        }
+
+        // 🚀 IMAGE GENERATOR ENGINE
+        function downloadDailyReport() {
+            const btn = document.getElementById(&#39;dl-btn&#39;);
+            const originalText = btn.innerHTML;
+            
+            if (todayTopScorers.length === 0) {
+                alert(&#34;No exams have been completed today to generate a report.&#34;);
+                return;
+            }
+
+            btn.innerHTML = `Generating Image...`;
+            btn.disabled = true;
+
+            const imgList = document.getElementById(&#39;img-list&#39;);
+            imgList.innerHTML = &#39;&#39;; // Clear previous
+
+            // Build the HTML for the hidden capture area
+            todayTopScorers.forEach((r, index) =&gt; {
+                const fullName = r.profiles?.full_name || &#39;Unknown Aspirant&#39;;
+                const course = r.profiles?.course_applied ? r.profiles.course_applied.replace(/\[.*?\]/g, &#39;&#39;).trim() : &#39;General&#39;;
+                
+                let rankStr = `#${index + 1}`;
+                if(index === 0) rankStr = &#39;🥇&#39;;
+                if(index === 1) rankStr = &#39;🥈&#39;;
+                if(index === 2) rankStr = &#39;🥉&#39;;
+
+                imgList.innerHTML += `
+                    &lt;div class=&#34;report-row&#34;&gt;
+                        &lt;span class=&#34;r-rank&#34;&gt;${rankStr}&lt;/span&gt;
+                        &lt;div class=&#34;r-name&#34;&gt;
+                            ${fullName}
+                            &lt;span class=&#34;r-course&#34;&gt;${course}&lt;/span&gt;
+                        &lt;/div&gt;
+                        &lt;span class=&#34;r-score&#34;&gt;${r.total_score}/50&lt;/span&gt;
+                    &lt;/div&gt;
+                `;
+            });
+
+            const captureArea = document.getElementById(&#39;capture-area&#39;);
+            captureArea.style.left = &#39;0&#39;; // Bring to front momentarily
+            
+            // Allow DOM to update before capturing
+            setTimeout(() =&gt; {
+                html2canvas(captureArea, { scale: 2, backgroundColor: null }).then(canvas =&gt; {
+                    const link = document.createElement(&#39;a&#39;);
+                    const dateStr = new Date().toISOString().split(&#39;T&#39;)[0];
+                    link.download = `AFIT_Daily_Report_${dateStr}.png`;
+                    link.href = canvas.toDataURL(&#39;image/png&#39;);
+                    link.click();
+                    
+                    captureArea.style.left = &#39;-9999px&#39;; // Hide again
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                }).catch(err =&gt; {
+                    console.error(&#34;Image generation failed&#34;, err);
+                    captureArea.style.left = &#39;-9999px&#39;;
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                    alert(&#34;Could not generate image.&#34;);
+                });
+            }, 100);
+        }
+
+        async function adminLogout() {
+            await supabaseClient.auth.signOut();
+            window.location.href = &#39;../index.html&#39;;
+        }
+    </script>
+  </body>
+</html>
