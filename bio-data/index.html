@@ -144,7 +144,11 @@
                 return;
             }
 
-            const { data: { session } } = await supabaseClient.auth.getSession();
+            const { data: { session: activeSession } } = await supabaseClient.auth.getSession();
+            if (!activeSession) {
+                window.location.href = '../login/';
+                return;
+            }
             const { error } = await supabaseClient
                 .from('profiles')
                 .update({
@@ -153,7 +157,7 @@
                     course_applied: course,
                     state_of_origin: state || null
                 })
-                .eq('id', session.user.id);
+                .eq('id', activeSession.user.id);
 
             if (error) {
                 msg.innerText = 'Error saving profile: ' + error.message;

@@ -166,6 +166,20 @@ async function saveProfile() {
     const msg = document.getElementById('save-msg');
     btn.disabled = true; btn.innerText = 'Saving…';
 
+    const fullName = document.getElementById('full_name').value.trim();
+    const course   = document.getElementById('course_applied').value;
+    if (!fullName) {
+        msg.innerText = 'Full name is required.';
+        msg.style.color = '#ef4444';
+        btn.disabled = false; btn.innerText = 'Save Changes';
+        return;
+    }
+    if (!course) {
+        msg.innerText = 'Please select a course.';
+        msg.style.color = '#ef4444';
+        btn.disabled = false; btn.innerText = 'Save Changes';
+        return;
+    }
     const jamb = parseInt(document.getElementById('jamb_score').value, 10);
     if (isNaN(jamb) || jamb < 100 || jamb > 400) {
         msg.innerText = 'JAMB score must be 100–400.';
@@ -175,9 +189,9 @@ async function saveProfile() {
     }
 
     const { error } = await supabaseClient.from('profiles').update({
-        full_name: document.getElementById('full_name').value.trim(),
+        full_name: fullName,
         jamb_score: jamb,
-        course_applied: document.getElementById('course_applied').value,
+        course_applied: course,
         state_of_origin: document.getElementById('state_of_origin').value || null
     }).eq('id', currentUserId);
 
