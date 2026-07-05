@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Results — AFIT CBT Simulator</title>
+    <link rel="icon" type="image/svg+xml" href="../static/img/afitcbtsim-logo.svg">
+    <link rel="icon" type="image/png" sizes="512x512" href="../static/img/afitcbtsim-logo.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="../static/img/afitcbtsim-logo1.png">
+    <link rel="apple-touch-icon" href="../static/img/apple-touch-icon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../static/main.css">
+    <style>
+        .result-card {
+            background: white; border-radius: 16px; border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.04); margin-bottom: 1rem;
+            overflow: hidden;
+        }
+        .result-card-header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 1.2rem 1.5rem; border-bottom: 1px solid #f1f5f9;
+            cursor: pointer; user-select: none;
+        }
+        .result-card-header:hover { background: #fafafa; }
+        .result-date { font-weight: 700; color: #0f172a; font-size: 0.95rem; }
+        .result-score-big { font-size: 1.5rem; font-weight: 800; color: #2563eb; }
+        .result-badge-row { display: flex; align-items: center; gap: 10px; }
+        .result-aggregate { font-size: 0.85rem; font-weight: 600; color: #64748b; }
+
+        .result-card-body { padding: 1.5rem; display: none; }
+        .result-card-body.open { display: block; }
+
+        .subject-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 0.75rem; margin-bottom: 1rem;
+        }
+        .subject-box {
+            background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px;
+            padding: 0.8rem 1rem; text-align: center;
+        }
+        .subject-box .subj-name { font-size: 0.7rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
+        .subject-box .subj-score { font-size: 1.4rem; font-weight: 800; color: #0f172a; line-height: 1; margin-top: 4px; }
+        .subject-box.has-score { border-color: #bfdbfe; background: #eff6ff; }
+        .subject-box.has-score .subj-score { color: #2563eb; }
+
+        .chevron { transition: transform 0.2s; }
+        .chevron.open { transform: rotate(180deg); }
+
+        .summary-row { display: flex; gap: 2rem; flex-wrap: wrap; }
+        .summary-item { display: flex; flex-direction: column; }
+        .summary-item .label { font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
+        .summary-item .value { font-size: 1.2rem; font-weight: 800; color: #0f172a; }
+    </style>
+</head>
+<body class="dashboard-body">
+
+    <div class="sidebar-overlay" id="mobile-overlay" onclick="toggleSidebar()"></div>
+
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header" style="display: flex; align-items: center; gap: 12px; padding: 1rem 0;">
+            <svg width="36" height="36" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style="border-radius: 8px; flex-shrink: 0; box-shadow: 0 4px 10px rgba(37,99,235,0.3);">
+                <rect width="100" height="100" rx="22" fill="url(#logo-grad-results)"/>
+                <path d="M50 20 L22 75 H36 L43 60 H57 L64 75 H78 L50 20 Z" fill="#ffffff"/>
+                <path d="M32 54 L45 67 L75 32" stroke="#38bdf8" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+                <defs>
+                    <linearGradient id="logo-grad-results" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
+                        <stop stop-color="#0f172a"/>
+                        <stop offset="1" stop-color="#1d4ed8"/>
+                    </linearGradient>
+                </defs>
+            </svg>
+            <span style="font-weight: 800; font-size: 1.15rem; color: #1e293b; letter-spacing: -0.5px; white-space: nowrap;">AFIT CBT SIM</span>
+        </div>
+        <ul class="sidebar-nav">
+            <li><a href="../dashboard/index.html"><svg style="width:20px;margin-right:12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg> Dashboard</a></li>
+            <li><a href="../exams/index.html"><svg style="width:20px;margin-right:12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg> Exams</a></li>
+            <li class="active"><a href="index.html#"><svg style="width:20px;margin-right:12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg> My Results</a></li>
+            <li><a href="../profile/index.html"><svg style="width:20px;margin-right:12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg> Profile</a></li>
+        </ul>
+        <div class="sidebar-footer">
+            <button class="logout-btn-sidebar" onclick="logout()">Log Out</button>
+        </div>
+    </aside>
+
+    <div class="main-wrapper">
+        <header class="top-header">
+            <button class="mobile-menu-btn" onclick="toggleSidebar()">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>
+            </button>
+            <div class="avatar" id="user-avatar">?</div>
+        </header>
+
+        <main class="dashboard-content">
+            <div class="welcome-banner" style="margin-bottom: 1.5rem;">
+                <div class="welcome-text">
+                    <h1>My Results</h1>
+                    <p>Full history of every exam you've taken — click a row to expand the breakdown.</p>
+                </div>
+            </div>
+
+            <div class="stats-row" style="margin-bottom: 1.5rem;">
+                <div class="stat-card">
+                    <div class="stat-icon blue"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></div>
+                    <div class="stat-info"><h4>Total Exams</h4><div class="stat-val" id="stat-total">0</div></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon green"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg></div>
+                    <div class="stat-info"><h4>Best Score</h4><div class="stat-val" id="stat-best">0<span style="font-size:1rem;color:#94a3b8">/50</span></div></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon purple"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg></div>
+                    <div class="stat-info"><h4>Average Score</h4><div class="stat-val" id="stat-avg">0<span style="font-size:1rem;color:#94a3b8">/50</span></div></div>
+                </div>
+            </div>
+
+            <div id="results-container">
+                <div style="text-align:center;color:#94a3b8;padding:3rem;">Loading your results...</div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../static/app.js"></script>
+
+    <script>
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('active');
+            document.getElementById('mobile-overlay').classList.toggle('active');
+        }
+
+        document.addEventListener("DOMContentLoaded", async () => {
+            const { data: { session }, error: authError } = await supabaseClient.auth.getSession();
+            if (!session || authError) return window.location.href = '../login/index.html';
+
+            const { data: profile } = await supabaseClient.from('profiles').select('full_name, jamb_score').eq('id', session.user.id).single();
+
+            if (profile && profile.full_name) {
+                const parts = profile.full_name.trim().split(/\s+/);
+                let initials = parts[0].charAt(0).toUpperCase();
+                if (parts.length > 1) initials += parts[1].charAt(0).toUpperCase();
+                document.getElementById('user-avatar').innerText = initials;
+            }
+
+            const jamb = profile ? (profile.jamb_score || 0) : 0;
+
+            const { data: results, error } = await supabaseClient
+                .from('results')
+                .select('*')
+                .eq('student_id', session.user.id)
+                .order('submitted_at', { ascending: false });
+
+            const container = document.getElementById('results-container');
+
+            if (error || !results || results.length === 0) {
+                container.innerHTML = '<div style="text-align:center;color:#94a3b8;padding:3rem;background:white;border-radius:16px;border:1px solid #e2e8f0;">No exams taken yet. <a href="../exams/index.html" style="color:#2563eb;font-weight:700;">Start your first test →</a></div>';
+                return;
+            }
+
+            let totalScore = 0;
+            let best = 0;
+
+            document.getElementById('stat-total').innerText = results.length;
+
+            container.innerHTML = '';
+
+            results.forEach((r, i) => {
+                totalScore += r.total_score;
+                if (r.total_score > best) best = r.total_score;
+
+                const date = new Date(r.submitted_at);
+                const dateStr = date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+                const timeStr = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+                const badgeClass = r.total_score >= 25 ? 'badge-green' : 'badge-orange';
+                const aggregate = ((jamb / 8) + r.total_score).toFixed(1);
+
+                const subjects = [
+                    { key: 'english_score',    label: 'ENG' },
+                    { key: 'math_score',       label: 'MTH' },
+                    { key: 'physics_score',    label: 'PHY' },
+                    { key: 'chemistry_score',  label: 'CHM' },
+                    { key: 'gns_score',        label: 'GNS' },
+                    { key: 'economics_score',  label: 'ECO' },
+                    { key: 'literature_score', label: 'LIT' },
+                    { key: 'government_score', label: 'GOV' },
+                    { key: 'commerce_score',   label: 'COM' },
+                ];
+
+                const subjectBoxes = subjects
+                    .filter(s => r[s.key] !== null && r[s.key] !== undefined)
+                    .map(s => `
+                        <div class="subject-box ${r[s.key] > 0 ? 'has-score' : ''}">
+                            <div class="subj-name">${s.label}</div>
+                            <div class="subj-score">${r[s.key]}</div>
+                        </div>
+                    `).join('');
+
+                const card = document.createElement('div');
+                card.className = 'result-card';
+                card.innerHTML = `
+                    <div class="result-card-header" onclick="toggleCard(${i})">
+                        <div>
+                            <div class="result-date">${dateStr} &nbsp;·&nbsp; ${timeStr}</div>
+                            <div class="result-aggregate" style="margin-top:4px;">Aggregate: <strong style="color:#0f172a">${aggregate}%</strong></div>
+                        </div>
+                        <div class="result-badge-row">
+                            <div class="result-score-big">${r.total_score}<span style="font-size:1rem;font-weight:600;color:#94a3b8">/50</span></div>
+                            <span class="score-badge ${badgeClass}">${r.total_score >= 25 ? 'Pass' : 'Below Avg'}</span>
+                            <svg class="chevron" id="chevron-${i}" style="width:20px;color:#94a3b8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </div>
+                    </div>
+                    <div class="result-card-body" id="body-${i}">
+                        <div class="subject-grid">${subjectBoxes}</div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+
+            document.getElementById('stat-best').innerHTML = `${best}<span style="font-size:1rem;color:#94a3b8">/50</span>`;
+            const avg = (totalScore / results.length).toFixed(1);
+            document.getElementById('stat-avg').innerHTML = `${avg}<span style="font-size:1rem;color:#94a3b8">/50</span>`;
+        });
+
+        function toggleCard(index) {
+            const body = document.getElementById(`body-${index}`);
+            const chevron = document.getElementById(`chevron-${index}`);
+            body.classList.toggle('open');
+            chevron.classList.toggle('open');
+        }
+
+        window.logout = async function() {
+            await supabaseClient.auth.signOut();
+            localStorage.removeItem('cbt_session_token');
+            window.location.href = '../index.html';
+        }
+    </script>
+
+</body>
+</html>

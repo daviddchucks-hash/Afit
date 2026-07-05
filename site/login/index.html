@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login — AFIT CBT Simulator</title>
+    <link rel="icon" type="image/svg+xml" href="../static/img/afitcbtsim-logo.svg">
+    <link rel="icon" type="image/png" sizes="512x512" href="../static/img/afitcbtsim-logo.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="../static/img/afitcbtsim-logo1.png">
+    <link rel="apple-touch-icon" href="../static/img/apple-touch-icon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../static/main.css">
+</head>
+<body class="auth-body">
+
+    <div class="auth-card">
+
+        <div class="auth-logo">
+            <svg width="36" height="36" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect width="100" height="100" rx="22" fill="url(#login-grad)"/>
+                <path d="M50 20 L22 75 H36 L43 60 H57 L64 75 H78 L50 20 Z" fill="#ffffff"/>
+                <defs>
+                    <linearGradient id="login-grad" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
+                        <stop stop-color="#0f172a"/>
+                        <stop offset="1" stop-color="#1d4ed8"/>
+                    </linearGradient>
+                </defs>
+            </svg>
+            <span>AFIT CBT SIM</span>
+        </div>
+
+        <div id="auth-message" class="auth-message"></div>
+
+        <!-- STEP 1: Email -->
+        <form id="email-form" onsubmit="requestOTP(event)">
+            <h2 id="login-title">Welcome Back</h2>
+            <p id="login-subtitle">Enter your email to receive a one-time verification code.</p>
+
+            <div class="input-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" placeholder="you@example.com" required autocomplete="email">
+            </div>
+
+            <button type="submit" class="btn-auth" id="request-btn">Send Verification Code</button>
+        </form>
+
+        <!-- STEP 2: OTP (hidden initially) -->
+        <form id="otp-form" class="hidden" onsubmit="verifyOTP(event)">
+            <h2>Check Your Email</h2>
+            <p id="otp-sent-to">We sent a 6-digit code to your email.</p>
+
+            <div class="input-group">
+                <label for="otp">Verification Code</label>
+                <input type="text" id="otp" placeholder="Enter 6-digit code" maxlength="6" autocomplete="one-time-code" inputmode="numeric" pattern="[0-9]*">
+            </div>
+
+            <button type="submit" class="btn-auth" id="verify-btn">Verify & Login</button>
+            <button type="button" class="auth-back-btn" onclick="resetToEmail()">← Use a different email</button>
+        </form>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../static/app.js"></script>
+
+    <script>
+        // Read URL params
+        const urlParams = new URLSearchParams(window.location.search);
+        const mode = urlParams.get('mode');
+
+        if (mode === 'admin') {
+            document.getElementById('login-title').innerText = 'Admin Access';
+            document.getElementById('login-subtitle').innerText = 'Enter your admin email to receive a verification code.';
+        }
+
+        function resetToEmail() {
+            document.getElementById('otp-form').classList.add('hidden');
+            document.getElementById('email-form').classList.remove('hidden');
+            const msg = document.getElementById('auth-message');
+            msg.innerText = '';
+            msg.className = 'auth-message';
+        }
+    </script>
+
+</body>
+</html>

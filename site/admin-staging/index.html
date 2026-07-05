@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ALOC Question Staging — AFIT CBT Simulator</title>
+    <link rel="icon" type="image/svg+xml" href="../static/img/afitcbtsim-logo.svg">
+    <link rel="icon" type="image/png" sizes="512x512" href="../static/img/afitcbtsim-logo.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="../static/img/afitcbtsim-logo1.png">
+    <link rel="apple-touch-icon" href="../static/img/apple-touch-icon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../static/main.css">
+    <style>
+        body { background: #f8fafc; color: #0f172a; font-family: 'Poppins', sans-serif; margin: 0; padding: 0; }
+
+        #auth-loader {
+            position: fixed; inset: 0; background: #0f172a; z-index: 9999;
+            display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; gap: 16px;
+        }
+
+        #staging-app { display: none; }
+
+        .staging-nav {
+            height: 60px; background: white; display: flex; justify-content: space-between; align-items: center;
+            padding: 0 1.5rem; border-bottom: 1px solid #e2e8f0; position: sticky; top: 0; z-index: 100;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+        .staging-nav-title { font-weight: 800; font-size: 1.05rem; color: #1e293b; display: flex; align-items: center; gap: 8px; }
+        .staging-wrapper { max-width: 900px; margin: 0 auto; padding: 1.5rem 1rem; }
+
+        .section-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 1.5rem; flex-wrap: wrap; gap: 10px;
+        }
+        .section-header h1 { margin: 0; font-size: 1.4rem; font-weight: 800; color: #0f172a; }
+
+        .filter-bar { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 1.5rem; }
+        .filter-btn {
+            padding: 0.4rem 1rem; border-radius: 20px; border: 1.5px solid #e2e8f0;
+            background: white; font-family: 'Poppins', sans-serif; font-weight: 600;
+            font-size: 0.8rem; cursor: pointer; color: #64748b; transition: all 0.2s;
+        }
+        .filter-btn:hover { border-color: #2563eb; color: #2563eb; }
+        .filter-btn.active { background: #2563eb; border-color: #2563eb; color: white; }
+
+        .kpi-strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 0.75rem; margin-bottom: 1.5rem; }
+        .kpi-mini { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1rem; text-align: center; }
+        .kpi-mini .km-val { font-size: 1.6rem; font-weight: 800; color: #0f172a; }
+        .kpi-mini .km-label { font-size: 0.7rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+
+        .staged-card {
+            background: white; border-radius: 16px; border: 1px solid #e2e8f0;
+            padding: 1.5rem; margin-bottom: 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.03); transition: box-shadow 0.2s;
+        }
+        .staged-card:hover { box-shadow: 0 6px 12px rgba(0,0,0,0.08); }
+
+        .staged-card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-bottom: 1rem; }
+        .staged-q-meta { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+        .subj-pill { font-size: 0.72rem; font-weight: 700; padding: 0.2rem 0.7rem; border-radius: 20px; background: #eff6ff; color: #2563eb; }
+        .report-pill { font-size: 0.68rem; font-weight: 700; color: #94a3b8; font-family: monospace; letter-spacing: 1px; }
+        .staged-q-text { font-size: 0.95rem; font-weight: 600; color: #0f172a; line-height: 1.65; margin-bottom: 1rem; }
+
+        .staged-opts { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 1rem; }
+        .staged-opt {
+            background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;
+            padding: 0.6rem 0.9rem; font-size: 0.875rem; font-weight: 500; color: #374151;
+            display: flex; align-items: flex-start; gap: 8px;
+        }
+        .staged-opt.correct { background: #f0fdf4; border-color: #86efac; color: #166534; font-weight: 700; }
+        .opt-ltr { font-weight: 800; flex-shrink: 0; }
+
+        .staged-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+        .btn-approve {
+            padding: 0.55rem 1.2rem; background: #16a34a; color: white; border: none;
+            border-radius: 8px; font-family: 'Poppins', sans-serif; font-weight: 700;
+            font-size: 0.82rem; cursor: pointer; transition: all 0.2s;
+        }
+        .btn-approve:hover { background: #15803d; }
+        .btn-reject {
+            padding: 0.55rem 1.2rem; background: #fef2f2; color: #dc2626;
+            border: 1px solid #fecaca; border-radius: 8px; font-family: 'Poppins', sans-serif;
+            font-weight: 700; font-size: 0.82rem; cursor: pointer; transition: all 0.2s;
+        }
+        .btn-reject:hover { background: #dc2626; color: white; }
+
+        .btn-action {
+            background: white; border: 1px solid #cbd5e1; padding: 0.55rem 1rem; border-radius: 8px;
+            font-weight: 700; cursor: pointer; color: #1e293b; transition: all 0.2s;
+            font-family: 'Poppins', sans-serif; font-size: 0.82rem;
+        }
+        .btn-action:hover { background: #f1f5f9; }
+        .btn-primary { background: #2563eb; color: white; border: none; }
+        .btn-primary:hover { background: #1d4ed8; }
+        .btn-danger { background: #fef2f2; border: 1px solid #fecaca; color: #dc2626; }
+
+        .empty-state { text-align: center; padding: 3rem; color: #94a3b8; background: white; border-radius: 16px; border: 1px solid #e2e8f0; }
+
+        @media (max-width: 600px) {
+            .staged-opts { grid-template-columns: 1fr; }
+            .section-header { flex-direction: column; align-items: flex-start; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="auth-loader">
+    <svg class="animate-spin" style="width:40px;height:40px;color:#38bdf8" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+    </svg>
+    <h3 style="margin:0;font-size:1.1rem;">Verifying Clearance...</h3>
+</div>
+
+<div id="staging-app">
+    <nav class="staging-nav">
+        <div class="staging-nav-title">
+            <svg width="24" height="24" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect width="100" height="100" rx="22" fill="#2563eb"/>
+                <path d="M50 20 L22 75 H36 L43 60 H57 L64 75 H78 L50 20 Z" fill="#ffffff"/>
+            </svg>
+            ALOC Question Staging
+        </div>
+        <div style="display:flex;gap:8px;">
+            <button onclick="window.location.href='../profile/index.html'" class="btn-action">← Back to Profile</button>
+            <button onclick="stagingLogout()" class="btn-action btn-danger">Disconnect</button>
+        </div>
+    </nav>
+
+    <div class="staging-wrapper">
+
+        <div class="section-header">
+            <div>
+                <h1>Question Review Queue</h1>
+                <p style="margin:4px 0 0;color:#64748b;font-size:0.875rem;">Review, approve, or reject staged questions before they go live.</p>
+            </div>
+            <button onclick="loadStagedQuestions()" class="btn-action">🔄 Refresh</button>
+        </div>
+
+        <div class="kpi-strip">
+            <div class="kpi-mini"><div class="km-val" id="kpi-pending">0</div><div class="km-label">Pending</div></div>
+            <div class="kpi-mini"><div class="km-val" id="kpi-approved">0</div><div class="km-label">Approved</div></div>
+            <div class="kpi-mini"><div class="km-val" id="kpi-rejected">0</div><div class="km-label">Rejected</div></div>
+            <div class="kpi-mini"><div class="km-val" id="kpi-live">0</div><div class="km-label">Live Questions</div></div>
+        </div>
+
+        <div class="filter-bar" id="filter-bar">
+            <button class="filter-btn active" onclick="setFilter('pending', this)">Pending Review</button>
+            <button class="filter-btn" onclick="setFilter('approved', this)">Approved</button>
+            <button class="filter-btn" onclick="setFilter('rejected', this)">Rejected</button>
+            <button class="filter-btn" onclick="setFilter('all', this)">All</button>
+        </div>
+
+        <div id="staged-list">
+            <div style="text-align:center;color:#94a3b8;padding:2rem;">Loading queue...</div>
+        </div>
+
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../static/app.js"></script>
+
+<script>
+    let currentFilter = 'pending';
+    let allStaged = [];
+
+    const SUBJECT_LABELS = {
+        english: 'English', math: 'Mathematics', physics: 'Physics',
+        chemistry: 'Chemistry', gns: 'GNS', economics: 'Economics',
+        literature: 'Literature', government: 'Government', commerce: 'Commerce',
+    };
+
+    function escHtml(str) {
+        if (!str) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        if (!session) return window.location.href = '../login/index.html?mode=admin';
+
+        const { data: profile } = await supabaseClient
+            .from('profiles').select('role').eq('id', session.user.id).single();
+
+        if (!profile || (profile.role !== 'admin' && profile.role !== 'jnr-admin')) {
+            alert('SECURITY LOCKOUT: You do not have staging privileges.');
+            return window.location.href = '../dashboard/index.html';
+        }
+
+        document.getElementById('auth-loader').style.display = 'none';
+        document.getElementById('staging-app').style.display = 'block';
+
+        await loadStagedQuestions();
+    });
+
+    async function loadStagedQuestions() {
+        const list = document.getElementById('staged-list');
+        list.innerHTML = '<div style="text-align:center;color:#94a3b8;padding:2rem;">Loading...</div>';
+
+        const [
+            { data: staged },
+            { count: approvedCount },
+            { count: rejectedCount },
+            { count: liveCount },
+        ] = await Promise.all([
+            supabaseClient.from('staged_questions').select('*').order('created_at', { ascending: false }),
+            supabaseClient.from('staged_questions').select('*', { count: 'exact', head: true }).eq('status', 'approved'),
+            supabaseClient.from('staged_questions').select('*', { count: 'exact', head: true }).eq('status', 'rejected'),
+            supabaseClient.from('questions').select('*', { count: 'exact', head: true }),
+        ]);
+
+        allStaged = staged || [];
+
+        const pending = allStaged.filter(q => q.status === 'pending' || !q.status).length;
+        document.getElementById('kpi-pending').innerText = pending;
+        document.getElementById('kpi-approved').innerText = approvedCount || 0;
+        document.getElementById('kpi-rejected').innerText = rejectedCount || 0;
+        document.getElementById('kpi-live').innerText = liveCount || 0;
+
+        renderList();
+    }
+
+    function setFilter(filter, btn) {
+        currentFilter = filter;
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        renderList();
+    }
+
+    function renderList() {
+        const list = document.getElementById('staged-list');
+        let filtered = allStaged;
+
+        if (currentFilter !== 'all') {
+            filtered = allStaged.filter(q => {
+                const status = q.status || 'pending';
+                return status === currentFilter;
+            });
+        }
+
+        if (filtered.length === 0) {
+            list.innerHTML = `<div class="empty-state">No questions in this category.</div>`;
+            return;
+        }
+
+        list.innerHTML = '';
+        filtered.forEach(q => {
+            const status = q.status || 'pending';
+            const subjectLabel = SUBJECT_LABELS[q.subject] || q.subject || 'General';
+            const card = document.createElement('div');
+            card.className = 'staged-card';
+            card.id = `card-${q.id}`;
+
+            card.innerHTML = `
+                <div class="staged-card-top">
+                    <div class="staged-q-meta">
+                        <span class="subj-pill">${escHtml(subjectLabel)}</span>
+                        <span class="report-pill">ID: ${escHtml(q.report_id || '????')}</span>
+                        <span class="score-badge ${status === 'approved' ? 'badge-green' : status === 'rejected' ? 'badge-orange' : 'badge-blue'}">${status.toUpperCase()}</span>
+                    </div>
+                </div>
+                <div class="staged-q-text">${escHtml(q.question_text)}</div>
+                <div class="staged-opts">
+                    <div class="staged-opt ${q.correct_answer === 'A' ? 'correct' : ''}"><span class="opt-ltr">A.</span>${escHtml(q.option_a)}</div>
+                    <div class="staged-opt ${q.correct_answer === 'B' ? 'correct' : ''}"><span class="opt-ltr">B.</span>${escHtml(q.option_b)}</div>
+                    <div class="staged-opt ${q.correct_answer === 'C' ? 'correct' : ''}"><span class="opt-ltr">C.</span>${escHtml(q.option_c)}</div>
+                    <div class="staged-opt ${q.correct_answer === 'D' ? 'correct' : ''}"><span class="opt-ltr">D.</span>${escHtml(q.option_d)}</div>
+                </div>
+                <div class="staged-actions">
+                    ${status !== 'approved' ? `<button class="btn-approve" onclick="approveQuestion('${q.id}')">✓ Approve & Push Live</button>` : ''}
+                    ${status !== 'rejected' ? `<button class="btn-reject" onclick="rejectQuestion('${q.id}')">✗ Reject</button>` : ''}
+                </div>
+            `;
+
+            list.appendChild(card);
+        });
+    }
+
+    async function approveQuestion(id) {
+        const btn = document.querySelector(`#card-${id} .btn-approve`);
+        if (btn) { btn.innerText = 'Pushing...'; btn.disabled = true; }
+
+        // Update staged_questions status
+        const { error: stageErr } = await supabaseClient
+            .from('staged_questions').update({ status: 'approved' }).eq('id', id);
+
+        if (stageErr) { alert('Error: ' + stageErr.message); return; }
+
+        // Copy to live questions table
+        const q = allStaged.find(q => q.id === id);
+        if (q) {
+            const { error: liveErr } = await supabaseClient.from('questions').insert({
+                question_text:  q.question_text,
+                option_a:       q.option_a,
+                option_b:       q.option_b,
+                option_c:       q.option_c,
+                option_d:       q.option_d,
+                correct_answer: q.correct_answer,
+                subject:        q.subject,
+                report_id:      q.report_id,
+            });
+            if (liveErr) { alert('Staged but failed to push live: ' + liveErr.message); return; }
+        }
+
+        await loadStagedQuestions();
+    }
+
+    async function rejectQuestion(id) {
+        if (!confirm('Reject this question? It will be hidden from the queue.')) return;
+        await supabaseClient.from('staged_questions').update({ status: 'rejected' }).eq('id', id);
+        await loadStagedQuestions();
+    }
+
+    async function stagingLogout() {
+        await supabaseClient.auth.signOut();
+        window.location.href = '../index.html';
+    }
+</script>
+
+</body>
+</html>

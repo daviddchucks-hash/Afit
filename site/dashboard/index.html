@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - AFIT CBT Simulator</title>
+    
+    <link rel="icon" type="image/svg+xml" href="../static/img/afitcbtsim-logo.svg">
+    <link rel="icon" type="image/png" sizes="512x512" href="../static/img/afitcbtsim-logo.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="../static/img/afitcbtsim-logo1.png">
+    <link rel="apple-touch-icon" href="../static/img/apple-touch-icon.png">
+    <link rel="icon" href="../favicon.ico" type="image/x-icon">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../static/main.css">
+    
+    <script src="https://js.paystack.co/v1/inline.js"></script>
+
+    <style>
+        /* 🚀 ULTRA-RESPONSIVE TABLE OVERRIDES */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed; /* This is the magic rule that prevents horizontal scrolling! */
+        }
+        
+        .data-table th, .data-table td {
+            padding: 1rem 0.5rem;
+            white-space: normal; /* Forces text to wrap instead of stretching */
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            vertical-align: middle;
+        }
+
+        /* Set specific column percentages so they scale down perfectly on small screens */
+        .history-table th:nth-child(1) { width: 25%; }
+        .history-table th:nth-child(2) { width: 55%; }
+        .history-table th:nth-child(3) { width: 20%; text-align: right; }
+
+        .leaderboard-table th:nth-child(1) { width: 12%; text-align: center; }
+        .leaderboard-table th:nth-child(2) { width: 38%; }
+        .leaderboard-table th:nth-child(3) { width: 32%; }
+        .leaderboard-table th:nth-child(4) { width: 18%; text-align: right; }
+
+        @media (max-width: 768px) {
+            .data-table th, .data-table td {
+                font-size: 0.75rem; /* Scaled down for devices like the Samsung S10e */
+                padding: 0.7rem 0.2rem;
+            }
+            .dash-card {
+                padding: 1.2rem 1rem; /* Less padding around the card to maximize screen space */
+            }
+        }
+    </style>
+</head>
+<body class="dashboard-body">
+
+    <div class="sidebar-overlay" id="mobile-overlay" onclick="toggleSidebar()"></div>
+
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header" style="display: flex; align-items: center; gap: 12px; padding: 1rem 0;">
+            <svg width="36" height="36" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style="border-radius: 8px; flex-shrink: 0; box-shadow: 0 4px 10px rgba(37,99,235,0.3);">
+                <rect width="100" height="100" rx="22" fill="url(#logo-grad-dash)"/>
+                <path d="M50 20 L22 75 H36 L43 60 H57 L64 75 H78 L50 20 Z" fill="#ffffff"/>
+                <path d="M32 54 L45 67 L75 32" stroke="#38bdf8" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+                <defs>
+                    <linearGradient id="logo-grad-dash" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
+                        <stop stop-color="#0f172a"/>
+                        <stop offset="1" stop-color="#1d4ed8"/>
+                    </linearGradient>
+                </defs>
+            </svg>
+            <span style="font-weight: 800; font-size: 1.15rem; color: #1e293b; letter-spacing: -0.5px; white-space: nowrap;">AFIT CBT SIM</span>
+        </div>
+        
+        <ul class="sidebar-nav">
+            <li class="active">
+                <a href="index.html#"><svg style="width: 20px; margin-right: 12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg> Dashboard</a>
+            </li>
+            <li>
+                <a href="../exams/index.html"><svg style="width: 20px; margin-right: 12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>Exams</a>
+            </li>
+            <li>
+                <a href="../view-results/index.html"><svg style="width: 20px; margin-right: 12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg> My Results</a>
+            </li>
+            <li>
+                <a href="../profile/index.html"><svg style="width: 20px; margin-right: 12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg> Profile</a>
+            </li>
+        </ul>
+
+        <div class="sidebar-footer">
+            <button class="logout-btn-sidebar" onclick="logout()">Log Out</button>
+        </div>
+    </aside>
+
+    <div class="main-wrapper">
+        
+        <header class="top-header">
+            <button class="mobile-menu-btn" onclick="toggleSidebar()">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                </svg>
+            </button>
+            <div class="avatar" id="user-avatar">?</div>
+        </header>
+
+        <main class="dashboard-content">
+            
+            <div class="welcome-banner">
+                <div class="welcome-text">
+                    <h1><span id="time-greeting">Welcome</span>, <span id="welcome-name">Aspirant</span>.</h1>
+                    <p>Track your progress, challenge the leaderboard, and master the AFIT CBT exam.</p>
+                    <div id="action-buttons-container" style="display: flex; gap: 15px; margin-top: 1.5rem; flex-wrap: wrap;"></div>
+                </div>
+            </div>
+
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="stat-icon blue">
+                        <svg fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                    </div>
+                    <div class="stat-info">
+                        <h4>Exams Taken</h4>
+                        <div class="stat-val"><span id="tests-count">0</span></div>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon green">
+                        <svg fill="currentColor" viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
+                    </div>
+                    <div class="stat-info">
+                        <h4>Account Plan</h4>
+                        <div class="stat-val" id="account-status" style="font-size: 1.2rem; margin-top: 5px; color: #16a34a;">Free Tier</div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon purple">
+                        <svg fill="currentColor" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                    </div>
+                    <div class="stat-info">
+                        <h4>Average Score</h4>
+                        <div class="stat-val" id="avg-score">0 <span style="font-size: 1rem; color: #94a3b8;">/ 50</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dashboard-grid">
+                
+                <div class="dash-card">
+                    <h3>
+                        <svg style="width: 20px; color: var(--brand-blue);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                        Performance History
+                    </h3>
+                    <div style="overflow-x: hidden;">
+                        <table class="data-table history-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Breakdown</th>
+                                    <th style="text-align: right;">Total Score</th>
+                                </tr>
+                            </thead>
+                            <tbody id="history-body">
+                                <tr><td colspan="3" style="text-align: center; color: #94a3b8; padding: 2rem;">Loading history...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 🚀 TODAY'S LEADERBOARD (DYNAMIC TITLE) -->
+                <div class="dash-card">
+                    <h3>
+                        <svg style="width: 20px; color: #10b981;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <span id="today-leaderboard-title">Top 10 Achievers Today</span>
+                    </h3>
+                    <div style="overflow-x: hidden;">
+                        <table class="data-table leaderboard-table">
+                            <thead>
+                                <tr>
+                                    <th style="text-align: center;">Rank</th>
+                                    <th>Aspirant</th>
+                                    <th>Course</th>
+                                    <th style="text-align: right;">Score</th>
+                                </tr>
+                            </thead>
+                            <tbody id="today-leaderboard-body">
+                                <tr><td colspan="4" style="text-align: center; color: #94a3b8; padding: 2rem;">Loading today's results...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- ALL TIME ACHIEVERS -->
+                <div class="dash-card">
+                    <h3>
+                        <svg style="width: 20px; color: #ea580c;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                        Top 15 Achievers (All Time)
+                    </h3>
+                    <div style="overflow-x: hidden;">
+                        <table class="data-table leaderboard-table">
+                            <thead>
+                                <tr>
+                                    <th style="text-align: center;">Rank</th>
+                                    <th>Aspirant</th>
+                                    <th>Course</th>
+                                    <th style="text-align: right;">Score</th>
+                                </tr>
+                            </thead>
+                            <tbody id="leaderboard-body">
+                                <tr><td colspan="4" style="text-align: center; color: #94a3b8; padding: 2rem;">Loading results...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../static/app.js"></script>
+
+   <script>
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('active');
+            document.getElementById('mobile-overlay').classList.toggle('active');
+        }
+
+        function setTimeGreeting() {
+            const hour = new Date().getHours();
+            let greeting = 'Good Evening';
+            if (hour >= 5 && hour < 12) greeting = 'Good Morning';
+            else if (hour >= 12 && hour < 17) greeting = 'Good Afternoon';
+            document.getElementById('time-greeting').innerText = greeting;
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            setTimeGreeting();
+            initializeDashboard();
+        });
+
+        async function initializeDashboard() {
+            const { data: { session }, error: authError } = await supabaseClient.auth.getSession();
+            if (!session || authError) return window.location.href = '../login/index.html';
+
+            const { data: profile } = await supabaseClient.from('profiles').select('*').eq('id', session.user.id).single();
+
+            // Fetch true test count from results table to prevent bypasses
+            const { data: resultsData } = await supabaseClient.from('results').select('id').eq('student_id', session.user.id);
+            const actualTestsTaken = resultsData ? resultsData.length : 0;
+            
+            document.getElementById('tests-count').innerText = actualTestsTaken;
+
+            if (profile.full_name) {
+                const nameParts = profile.full_name.trim().split(/\s+/);
+                document.getElementById('welcome-name').innerText = nameParts[0];
+                let initials = nameParts[0].charAt(0).toUpperCase();
+                if (nameParts.length > 1) initials += nameParts[1].charAt(0).toUpperCase();
+                document.getElementById('user-avatar').innerText = initials;
+            }
+
+            const statusText = document.getElementById('account-status');
+            const actionContainer = document.getElementById('action-buttons-container');
+
+            // LAUNCH/MONETIZATION LOGIC (1 Free Test Max)
+            actionContainer.innerHTML = '';
+
+            if (profile.has_paid) {
+                statusText.innerText = 'Premium Access';
+                statusText.style.color = '#16a34a';
+                actionContainer.innerHTML = `
+                    <button onclick="window.location.href='../exam-room/index.html'" style="padding: 1rem 2rem; border-radius: 12px; font-weight: 700; border: none; cursor: pointer; background: #16a34a; color: white; font-size: 1rem; box-shadow: 0 10px 20px rgba(22, 163, 74, 0.3); transition: transform 0.2s;">
+                        Start Premium Exam →
+                    </button>
+                `;
+            } else {
+                if (actualTestsTaken >= 1) {
+                    statusText.innerText = 'Free Limit Reached';
+                    statusText.style.color = '#ea580c';
+                    actionContainer.innerHTML = `
+                        <button onclick="initiatePayment('${session.user.email}', '${session.user.id}')" style="padding: 1rem 2rem; border-radius: 12px; font-weight: 700; border: none; cursor: pointer; background: #ea580c; color: white; font-size: 1rem; box-shadow: 0 10px 20px rgba(234, 88, 12, 0.3); transition: transform 0.2s;">
+                            👑 Unlock Full Access (₦1,050)
+                        </button>
+                    `;
+                } else {
+                    statusText.innerText = `Free Tier (1 Left)`;
+                    actionContainer.innerHTML = `
+                        <button onclick="window.location.href='../exam-room/index.html'" style="padding: 1rem 2rem; border-radius: 12px; font-weight: 700; border: none; cursor: pointer; background: #2563eb; color: white; font-size: 1rem; box-shadow: 0 10px 20px rgba(37, 99, 235, 0.3); transition: transform 0.2s;">
+                            Start Free Test →
+                        </button>
+                        <button onclick="initiatePayment('${session.user.email}', '${session.user.id}')" style="padding: 1rem 2rem; border-radius: 12px; font-weight: 700; border: 2px solid #ea580c; cursor: pointer; background: white; color: #ea580c; font-size: 1rem; transition: background 0.3s;">
+                            👑 Upgrade Now
+                        </button>
+                    `;
+                }
+            }
+
+            fetchUserHistory(session.user.id);
+            fetchTodayLeaderboard(); 
+            fetchLeaderboard();      
+        }
+
+        // PAYSTACK INLINE POPUP FUNCTION
+        function initiatePayment(email, userId) {
+            let handler = PaystackPop.setup({
+                key: 'pk_live_f1ca0bad0d6913267fb525e6c58cd2c447a1ae29',
+                email: email,
+                amount: 1050 * 100, // 1050 Naira in kobo
+                currency: 'NGN',
+                ref: 'AFIT_' + Math.floor((Math.random() * 1000000000) + 1),
+                metadata: {
+                    custom_fields: [
+                        {
+                            display_name: "Student ID",
+                            variable_name: "student_id",
+                            value: userId 
+                        }
+                    ]
+                },
+                callback: function(response) {
+                    alert('Payment successful! Verifying your account upgrade. The page will refresh momentarily.');
+                    setTimeout(() => {
+                        window.location.reload(); 
+                    }, 3000);
+                },
+                onClose: function() {
+                    alert('Payment process was cancelled.');
+                }
+            });
+            handler.openIframe();
+        }
+
+        async function fetchUserHistory(userId) {
+            const { data, error } = await supabaseClient.from('results').select('*').eq('student_id', userId).order('submitted_at', { ascending: false });
+            const tbody = document.getElementById('history-body');
+            const avgDisplay = document.getElementById('avg-score');
+            
+            if (error || !data || data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; color: #94a3b8; padding: 2rem;">No exams taken yet. Start practicing!</td></tr>';
+                return;
+            }
+
+            let totalSum = 0;
+            tbody.innerHTML = ''; 
+            
+            data.forEach((row) => {
+                totalSum += row.total_score;
+                const formattedDate = new Date(row.submitted_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                
+                const allScores = [
+                    { name: 'ENG', val: row.english_score },
+                    { name: 'GNS', val: row.gns_score },
+                    { name: 'MTH', val: row.math_score },
+                    { name: 'PHY', val: row.physics_score },
+                    { name: 'CHM', val: row.chemistry_score },
+                    { name: 'ECO', val: row.economics_score },
+                    { name: 'LIT', val: row.literature_score },
+                    { name: 'GOV', val: row.government_score },
+                    { name: 'COM', val: row.commerce_score }
+                ].filter(s => s.val !== undefined && s.val !== null && s.val > 0);
+
+                if (allScores.length === 0) allScores.push({ name: 'ENG', val: 0 }); // Fallback
+
+                let breakdownHtml = allScores.map(s => `${s.name}: <strong>${s.val}</strong>`).join(' | ');
+
+                const badgeClass = row.total_score >= 25 ? 'badge-green' : 'badge-orange';
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><strong>${formattedDate}</strong></td>
+                    <td style="color: #64748b; line-height: 1.8;">
+                        ${breakdownHtml}
+                    </td>
+                    <td style="text-align: right;"><span class="score-badge ${badgeClass}" style="white-space: nowrap;">${row.total_score} / 50</span></td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            const average = (totalSum / data.length).toFixed(1);
+            avgDisplay.innerHTML = `${average} <span style="font-size: 1rem; color: #94a3b8;">/ 50</span>`;
+        }
+
+        // 🚀 FETCH TODAY'S LEADERBOARD & UPDATE TITLE
+        async function fetchTodayLeaderboard() {
+            // Update Title with Dynamic Date
+            const todayDate = new Date();
+            const monthStr = todayDate.toLocaleDateString('en-US', { month: 'long' });
+            const dayNum = todayDate.getDate();
+            
+            let suffix = 'th';
+            if (dayNum % 10 === 1 && dayNum !== 11) suffix = 'st';
+            else if (dayNum % 10 === 2 && dayNum !== 12) suffix = 'nd';
+            else if (dayNum % 10 === 3 && dayNum !== 13) suffix = 'rd';
+            
+            document.getElementById('today-leaderboard-title').innerText = `Top 10 Achievers Today, ${monthStr} ${dayNum}${suffix}`;
+
+            // Calculate 00:00:00 and 23:59:59 for today
+            const startOfDay = new Date();
+            startOfDay.setHours(0, 0, 0, 0);
+            
+            const endOfDay = new Date();
+            endOfDay.setHours(23, 59, 59, 999);
+
+            const { data, error } = await supabaseClient
+                .from('results')
+                .select(`total_score, profiles (full_name, course_applied)`)
+                .gte('submitted_at', startOfDay.toISOString())
+                .lte('submitted_at', endOfDay.toISOString())
+                .order('total_score', { ascending: false })
+                .limit(10); 
+
+            const tbody = document.getElementById('today-leaderboard-body');
+            
+            if (error) console.error("Today's Leaderboard Error:", error);
+
+            if (error || !data || data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #94a3b8; padding: 2rem;">No exams have been completed today.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = ''; 
+            
+            data.forEach((row, index) => {
+                const fullName = row.profiles?.full_name || 'Unknown Aspirant';
+                const courseApplied = row.profiles?.course_applied || 'General';
+
+                let rankDisplay = `<span style="color: #64748b; font-weight: 700;">#${index + 1}</span>`;
+                if (index === 0) rankDisplay = '🥇';
+                if (index === 1) rankDisplay = '🥈';
+                if (index === 2) rankDisplay = '🥉';
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="font-size: 1.1rem; text-align: center;">${rankDisplay}</td>
+                    <td><span style="font-weight: 600; color: #1e293b; line-height: 1.3; display: block;">${fullName}</span></td>
+                    <td style="color: #64748b; font-weight: 500; line-height: 1.3; font-size: 0.85rem;">${courseApplied}</td>
+                    <td style="text-align: right;"><span class="score-badge badge-blue" style="white-space: nowrap;">${row.total_score}</span></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // FETCH ALL-TIME LEADERBOARD
+        async function fetchLeaderboard() {
+            const { data, error } = await supabaseClient
+                .from('results')
+                .select(`total_score, profiles (full_name, course_applied)`)
+                .order('total_score', { ascending: false })
+                .limit(15); 
+
+            const tbody = document.getElementById('leaderboard-body');
+            
+            if (error) console.error("Leaderboard Error:", error);
+
+            if (error || !data || data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #94a3b8; padding: 2rem;">No results yet.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = ''; 
+            
+            data.forEach((row, index) => {
+                const fullName = row.profiles?.full_name || 'Unknown Aspirant';
+                const courseApplied = row.profiles?.course_applied || 'General';
+
+                let rankDisplay = `<span style="color: #64748b; font-weight: 700;">#${index + 1}</span>`;
+                if (index === 0) rankDisplay = '🥇';
+                if (index === 1) rankDisplay = '🥈';
+                if (index === 2) rankDisplay = '🥉';
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="font-size: 1.1rem; text-align: center;">${rankDisplay}</td>
+                    <td><span style="font-weight: 600; color: #1e293b; line-height: 1.3; display: block;">${fullName}</span></td>
+                    <td style="color: #64748b; font-weight: 500; line-height: 1.3; font-size: 0.85rem;">${courseApplied}</td>
+                    <td style="text-align: right;"><span class="score-badge badge-blue" style="white-space: nowrap;">${row.total_score}</span></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        window.logout = async function() {
+            await supabaseClient.auth.signOut();
+            localStorage.removeItem('cbt_session_token');
+            window.location.href = '../index.html';
+        }
+    </script>
+</body>
+</html>
