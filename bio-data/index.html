@@ -10,6 +10,10 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../static/main.css">
+    <style>
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0 1.5rem; }
+        @media(max-width: 600px){ .form-row { grid-template-columns: 1fr; } }
+    </style>
 </head>
 <body class="auth-page">
 
@@ -20,37 +24,55 @@
                     <rect width="100" height="100" rx="22" fill="url(#lg-bio)"/>
                     <path d="M50 20 L22 75 H36 L43 60 H57 L64 75 H78 L50 20 Z" fill="#ffffff"/>
                     <path d="M32 54 L45 67 L75 32" stroke="#38bdf8" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
-                    <defs>
-                        <linearGradient id="lg-bio" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
-                            <stop stop-color="#0f172a"/><stop offset="1" stop-color="#1d4ed8"/>
-                        </linearGradient>
-                    </defs>
+                    <defs><linearGradient id="lg-bio" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse"><stop stop-color="#0f172a"/><stop offset="1" stop-color="#1d4ed8"/></linearGradient></defs>
                 </svg>
                 <h2>One last step before you start.</h2>
-                <p>Your JAMB score is essential for calculating your final aggregate accurately. Fill in your details and begin practising immediately.</p>
+                <p>Your JAMB score and course details are required to accurately calculate your Post-UTME aggregate after every practice session. Fill in carefully.</p>
             </div>
         </div>
 
-        <div class="auth-form-container">
-            <div class="auth-form-wrapper">
+        <div class="auth-form-container" style="overflow-y:auto;">
+            <div class="auth-form-wrapper" style="max-width:500px;">
                 <div class="auth-logo">
                     <img src="../static/img/afitcbtsim-logo.png" alt="AFIT CBT Simulator">
                 </div>
                 <h1 class="auth-title">Your Aspirant Profile</h1>
-                <p class="auth-subtitle">This information is used to compute your Post-UTME aggregate. You can update it anytime in Settings.</p>
+                <p class="auth-subtitle">All fields marked * are required. You can message the admin to update these later.</p>
 
                 <form id="bio-form" novalidate>
-                    <div class="input-group">
-                        <label for="full_name">Full Name (Surname First)</label>
-                        <input type="text" id="full_name" name="full_name" placeholder="e.g. Okonkwo Chukwuemeka" required autocomplete="name">
+                    <div class="form-row">
+                        <div class="input-group">
+                            <label for="full_name">Full Legal Name * <span style="font-size:0.8rem;font-weight:400;color:#94a3b8;">(Surname First)</span></label>
+                            <input type="text" id="full_name" placeholder="e.g. Okonkwo Chukwuemeka" required autocomplete="name">
+                        </div>
+                        <div class="input-group">
+                            <label for="phone_number">Phone Number</label>
+                            <input type="tel" id="phone_number" placeholder="e.g. 08012345678" autocomplete="tel">
+                        </div>
                     </div>
-                    <div class="input-group">
-                        <label for="jamb_score">JAMB Score (out of 400)</label>
-                        <input type="number" id="jamb_score" name="jamb_score" placeholder="e.g. 242" min="100" max="400" required>
+
+                    <div class="form-row">
+                        <div class="input-group">
+                            <label for="program_type">Program Type *</label>
+                            <select id="program_type" required>
+                                <option value="" disabled selected>Select programme…</option>
+                                <option>Undergraduate (Direct Entry)</option>
+                                <option>Undergraduate (UTME)</option>
+                                <option>Postgraduate (Masters)</option>
+                                <option>Postgraduate (PhD)</option>
+                                <option>Pre-degree / Remedial</option>
+                                <option>Short Course / Professional</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label for="jamb_score">JAMB Score * <span style="font-size:0.8rem;font-weight:400;color:#94a3b8;">(100–400)</span></label>
+                            <input type="number" id="jamb_score" placeholder="e.g. 242" min="100" max="400" required inputmode="numeric">
+                        </div>
                     </div>
+
                     <div class="input-group">
-                        <label for="course_applied">Course Applied For</label>
-                        <select id="course_applied" name="course_applied" required>
+                        <label for="course_applied">Course Applied For *</label>
+                        <select id="course_applied" required>
                             <option value="" disabled selected>Select course…</option>
                             <optgroup label="Engineering">
                                 <option>Electrical/Electronic Engineering</option>
@@ -58,29 +80,34 @@
                                 <option>Civil Engineering</option>
                                 <option>Computer Engineering</option>
                                 <option>Aeronautical Engineering</option>
+                                <option>Systems Engineering</option>
                             </optgroup>
                             <optgroup label="Sciences">
                                 <option>Computer Science</option>
                                 <option>Physics</option>
                                 <option>Mathematics</option>
                                 <option>Chemistry</option>
+                                <option>Meteorology</option>
                             </optgroup>
                             <optgroup label="Social Sciences">
                                 <option>Accounting</option>
                                 <option>Business Administration</option>
                                 <option>Economics</option>
                                 <option>Public Administration</option>
+                                <option>Financial Management</option>
                             </optgroup>
                             <optgroup label="Arts &amp; Humanities">
                                 <option>English Language</option>
                                 <option>History &amp; War Studies</option>
                                 <option>Mass Communication</option>
+                                <option>Intelligence &amp; Security Studies</option>
                             </optgroup>
                         </select>
                     </div>
+
                     <div class="input-group">
                         <label for="state_of_origin">State of Origin</label>
-                        <select id="state_of_origin" name="state_of_origin">
+                        <select id="state_of_origin">
                             <option value="" disabled selected>Select state…</option>
                             <option>Abia</option><option>Adamawa</option><option>Akwa Ibom</option>
                             <option>Anambra</option><option>Bauchi</option><option>Bayelsa</option>
@@ -97,8 +124,9 @@
                             <option>Zamfara</option>
                         </select>
                     </div>
+
                     <button type="submit" class="auth-btn" id="save-bio-btn">Save &amp; Go to Dashboard →</button>
-                    <p id="bio-message" style="text-align:center;margin-top:1rem;font-size:0.9rem;font-weight:500;min-height:1.2rem;"></p>
+                    <p id="bio-message" style="text-align:center;margin-top:1rem;font-size:0.9rem;font-weight:500;min-height:1.4rem;"></p>
                 </form>
 
                 <div class="auth-footer">
@@ -113,7 +141,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
             const { data: { session } } = await supabaseClient.auth.getSession();
-            if (!session) return window.location.href = '../login/';
+            if (!session) return window.location.href = '../login/index.html';
         });
 
         document.getElementById('bio-form').addEventListener('submit', async (e) => {
@@ -124,50 +152,61 @@
             btn.innerText = 'Saving…';
 
             const fullName   = document.getElementById('full_name').value.trim();
-            const jambScore  = parseInt(document.getElementById('jamb_score').value, 10);
+            const phone      = document.getElementById('phone_number').value.trim();
+            const program    = document.getElementById('program_type').value;
+            const jambRaw    = document.getElementById('jamb_score').value;
             const course     = document.getElementById('course_applied').value;
             const state      = document.getElementById('state_of_origin').value;
 
-            if (!fullName || !jambScore || !course) {
-                msg.innerText = 'Please fill in all required fields.';
+            if (!fullName) {
+                msg.innerText = 'Please enter your full name.';
                 msg.className = 'error';
-                btn.disabled = false;
-                btn.innerText = 'Save & Go to Dashboard →';
+                btn.disabled = false; btn.innerText = 'Save & Go to Dashboard →';
                 return;
             }
-
-            if (jambScore < 100 || jambScore > 400) {
+            if (!program) {
+                msg.innerText = 'Please select a program type.';
+                msg.className = 'error';
+                btn.disabled = false; btn.innerText = 'Save & Go to Dashboard →';
+                return;
+            }
+            const jambScore = parseInt(jambRaw, 10);
+            if (!jambRaw || isNaN(jambScore) || jambScore < 100 || jambScore > 400) {
                 msg.innerText = 'JAMB score must be between 100 and 400.';
                 msg.className = 'error';
-                btn.disabled = false;
-                btn.innerText = 'Save & Go to Dashboard →';
+                btn.disabled = false; btn.innerText = 'Save & Go to Dashboard →';
+                return;
+            }
+            if (!course) {
+                msg.innerText = 'Please select your course.';
+                msg.className = 'error';
+                btn.disabled = false; btn.innerText = 'Save & Go to Dashboard →';
                 return;
             }
 
             const { data: { session: activeSession } } = await supabaseClient.auth.getSession();
             if (!activeSession) {
-                window.location.href = '../login/';
+                window.location.href = '../login/index.html';
                 return;
             }
-            const { error } = await supabaseClient
-                .from('profiles')
-                .update({
-                    full_name: fullName,
-                    jamb_score: jambScore,
-                    course_applied: course,
-                    state_of_origin: state || null
-                })
-                .eq('id', activeSession.user.id);
+
+            const { error } = await supabaseClient.from('profiles').update({
+                full_name:       fullName,
+                phone_number:    phone || null,
+                program_type:    program,
+                jamb_score:      jambScore,
+                course_applied:  course,
+                state_of_origin: state || null
+            }).eq('id', activeSession.user.id);
 
             if (error) {
                 msg.innerText = 'Error saving profile: ' + error.message;
                 msg.className = 'error';
-                btn.disabled = false;
-                btn.innerText = 'Save & Go to Dashboard →';
+                btn.disabled = false; btn.innerText = 'Save & Go to Dashboard →';
             } else {
                 msg.innerText = 'Profile saved! Redirecting…';
                 msg.className = 'success';
-                setTimeout(() => window.location.href = '../dashboard/', 800);
+                setTimeout(() => window.location.href = '../dashboard/index.html', 800);
             }
         });
     </script>

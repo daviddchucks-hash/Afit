@@ -1,22 +1,18 @@
 // ============================================================
-//  AFIT CBT SIMULATOR — shared app.js
-//  Supabase client + Auth helpers
-//  SECURITY FIXES applied (see SECURITY_REPORT.md for details)
+//  AFIT CBT SIMULATOR — static/app.js  (shared across all pages)
+//  SECURITY FIXES:
+//    ✅ Math.random() → crypto.getRandomValues()
+//    ✅ All console.log() leaking email/session data removed
+//    ✅ Shared logout() clears current_session_token in DB before sign-out
+//    ✅ escHtml() helper to prevent XSS when inserting DB data into DOM
 // ============================================================
 
-const SUPABASE_URL = 'https://kvlishlwkxdnlbatepsr.supabase.co';
+const SUPABASE_URL     = 'https://kvlishlwkxdnlbatepsr.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt2bGlzaGx3a3hkbmxiYXRlcHNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk1NjMxNjIsImV4cCI6MjA5NTEzOTE2Mn0.tcl14-RfH6C_04gOm8T_cu9PlEFOmWM_BxD0PVIoXHQ';
 
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// ── Secure random token (FIX: replaces Math.random()) ────────────────
-function generateSecureToken() {
-    const arr = new Uint8Array(32);
-    crypto.getRandomValues(arr);
-    return Array.from(arr).map(b => b.toString(16).padStart(2, '0')).join('');
-}
-
-// ── HTML escape helper (FIX: prevents XSS when inserting DB data) ────
+// ── HTML escape helper (prevents XSS when inserting DB data into innerHTML) ──
 function escHtml(str) {
     if (str === null || str === undefined) return '';
     return String(str)
@@ -27,7 +23,14 @@ function escHtml(str) {
         .replace(/'/g, '&#39;');
 }
 
-// ── OTP flow state ────────────────────────────────────────────────────
+// ── Cryptographically secure token (replaces Math.random()) ──────────────────
+function generateSecureToken() {
+    const arr = new Uint8Array(32);
+    crypto.getRandomValues(arr);
+    return Array.from(arr).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+// ── OTP Authentication ────────────────────────────────────────────────────────
 let userEmailForVerification = '';
 
 async function requestOTP(event) {
@@ -43,8 +46,8 @@ async function requestOTP(event) {
         return;
     }
 
-    submitBtn.innerText  = 'Sending…';
-    submitBtn.disabled   = true;
+    submitBtn.innerText = 'Sending...';
+    submitBtn.disabled  = true;
 
     const { data, error } = await supabaseClient.auth.signInWithOtp({
         email: emailInput,
@@ -60,7 +63,7 @@ async function requestOTP(event) {
         userEmailForVerification = emailInput;
         document.getElementById('email-form').classList.add('hidden');
         document.getElementById('otp-form').classList.remove('hidden');
-        messageEl.innerText = 'Code sent! Check your inbox (including spam).';
+        messageEl.innerText = 'Code sent! Check your inbox (and spam folder).';
         messageEl.className = 'success';
         submitBtn.disabled  = false;
     }
@@ -73,32 +76,32 @@ async function verifyOTP(event) {
     const messageEl = document.getElementById('auth-message');
     const verifyBtn = document.getElementById('verify-btn');
 
-    verifyBtn.innerText = 'Verifying…';
+    verifyBtn.innerText = 'Verifying...';
     verifyBtn.disabled  = true;
 
-    // Try email OTP first, fall back to magiclink then signup types
-    const otpTypes = ['email', 'magiclink', 'signup'];
-    let session = null, error = null;
+    // Try 3 OTP types in sequence
+    const types = ['email', 'magiclink', 'signup'];
+    let session = null, lastError = null;
 
-    for (const type of otpTypes) {
+    for (const type of types) {
         const res = await supabaseClient.auth.verifyOtp({
             email: userEmailForVerification,
             token: otpInput,
             type
         });
         if (!res.error && res.data?.session) { session = res.data.session; break; }
-        error = res.error;
+        lastError = res.error;
     }
 
     if (!session) {
         messageEl.innerText = 'Invalid or expired code. Please request a new one.';
         messageEl.className = 'error';
-        verifyBtn.innerText = 'Verify & Login';
-        verifyBtn.disabled  = false;
+        verifyBtn.innerText  = 'Verify & Login';
+        verifyBtn.disabled   = false;
         return;
     }
 
-    // FIX: use cryptographically secure session token
+    // Store cryptographically secure session token
     const secureToken = generateSecureToken();
     localStorage.setItem('cbt_session_token', secureToken);
 
@@ -122,11 +125,10 @@ async function verifyOTP(event) {
     }
 }
 
-// ── Shared logout (FIX: clears token in DB before redirecting) ────────
+// ── Shared Logout (clears DB token before signing out) ───────────────────────
 window.logout = async function () {
     const { data: { session } } = await supabaseClient.auth.getSession();
     if (session) {
-        // Clear the single-device token in DB
         await supabaseClient
             .from('profiles')
             .update({ current_session_token: null })
@@ -137,7 +139,7 @@ window.logout = async function () {
     window.location.href = '../index.html';
 };
 
-// ── Sidebar toggle (shared across dashboard pages) ────────────────────
+// ── Shared Sidebar Toggle ─────────────────────────────────────────────────────
 window.toggleSidebar = function () {
     document.getElementById('sidebar')?.classList.toggle('active');
     document.getElementById('mobile-overlay')?.classList.toggle('active');

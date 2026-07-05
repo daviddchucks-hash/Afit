@@ -4,7 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login — AFIT CBT Simulator</title>
-    <link rel="icon" type="image/png" href="../static/img/afitcbtsim-logo.png">
+    <link rel="icon" type="image/svg+xml" href="../static/img/afitcbtsim-logo.svg">
+    <link rel="icon" type="image/png" sizes="512x512" href="../static/img/afitcbtsim-logo.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="../static/img/afitcbtsim-logo1.png">
+    <link rel="apple-touch-icon" href="../static/img/apple-touch-icon.png">
     <link rel="icon" href="../favicon.ico" type="image/x-icon">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -22,11 +25,7 @@
                     <rect width="100" height="100" rx="22" fill="url(#lg-login)"/>
                     <path d="M50 20 L22 75 H36 L43 60 H57 L64 75 H78 L50 20 Z" fill="#ffffff"/>
                     <path d="M32 54 L45 67 L75 32" stroke="#38bdf8" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
-                    <defs>
-                        <linearGradient id="lg-login" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
-                            <stop stop-color="#0f172a"/><stop offset="1" stop-color="#1d4ed8"/>
-                        </linearGradient>
-                    </defs>
+                    <defs><linearGradient id="lg-login" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse"><stop stop-color="#0f172a"/><stop offset="1" stop-color="#1d4ed8"/></linearGradient></defs>
                 </svg>
                 <h2>The smartest way to prepare for AFIT Post-UTME.</h2>
                 <p>Practice timed exams, track your aggregate, and walk into the screening room with confidence. No password needed — just your email.</p>
@@ -56,7 +55,7 @@
                 <!-- STEP 2: OTP -->
                 <div id="otp-form" class="hidden">
                     <h1 class="auth-title">Check your email</h1>
-                    <p class="auth-subtitle" id="otp-subtitle">We've sent a 6-digit code. It expires in 10 minutes.</p>
+                    <p class="auth-subtitle">We've sent a 6-digit verification code. It expires in 10 minutes.</p>
                     <form onsubmit="verifyOTP(event)" novalidate>
                         <div class="input-group">
                             <label for="otp">Verification Code</label>
@@ -65,14 +64,15 @@
                         <button type="submit" class="auth-btn" id="verify-btn">Verify &amp; Login →</button>
                     </form>
                     <p style="text-align:center;margin-top:1rem;font-size:0.85rem;color:#94a3b8;">
-                        Wrong email? <button onclick="resetToEmail()" style="background:none;border:none;color:#2563eb;font-weight:600;cursor:pointer;font-family:'Poppins',sans-serif;font-size:0.85rem;">Go back</button>
+                        Wrong email?
+                        <button onclick="resetToEmail()" style="background:none;border:none;color:#2563eb;font-weight:600;cursor:pointer;font-family:'Poppins',sans-serif;font-size:0.85rem;">Go back</button>
                     </p>
                 </div>
 
-                <p id="auth-message" style="margin-top:1.2rem;font-size:0.9rem;font-weight:500;text-align:center;min-height:1.2rem;"></p>
+                <p id="auth-message" style="min-height:1.2rem;"></p>
 
                 <div class="auth-footer">
-                    <p>By continuing, you agree to our Terms of Service. <strong>AFIT CBT Simulator</strong></p>
+                    <p>By continuing you agree to our Terms of Service. <strong>AFIT CBT Simulator</strong></p>
                 </div>
             </div>
         </div>
@@ -90,7 +90,7 @@
         // Auto-redirect if already logged in
         (async () => {
             const { data: { session } } = await supabaseClient.auth.getSession();
-            if (session) window.location.href = '../dashboard/';
+            if (session) window.location.href = '../dashboard/index.html';
         })();
     </script>
 </body>

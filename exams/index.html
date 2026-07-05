@@ -3,378 +3,391 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Exams — AFIT CBT Simulator</title>
-    <link rel="icon" type="image/png" href="../static/img/afitcbtsim-logo.png">
+    <title>Available Exams - AFIT CBT Simulator</title>
+    
+    <link rel="icon" type="image/svg+xml" href="../static/img/afitcbtsim-logo.svg">
+    <link rel="icon" type="image/png" sizes="512x512" href="../static/img/afitcbtsim-logo.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="../static/img/afitcbtsim-logo1.png">
+    <link rel="apple-touch-icon" href="../static/img/apple-touch-icon.png">
     <link rel="icon" href="../favicon.ico" type="image/x-icon">
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../static/main.css">
+    
+    <script src="https://js.paystack.co/v1/inline.js"></script>
+
+    <style>
+        html, body { max-width: 100vw !important; overflow-x: hidden !important; margin: 0; padding: 0; }
+        *, *::before, *::after { box-sizing: border-box !important; }
+
+        .exam-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
+            width: 100%;
+            align-items: start;
+        }
+
+        .dash-card-alt {
+            background: white; padding: 2rem; border-radius: 20px;
+            border: 1px solid #e2e8f0; box-shadow: 0 10px 30px -10px rgba(0,0,0,0.05);
+            width: 100%; max-width: 100%;
+        }
+
+        .premium-launch-card {
+            background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%);
+            padding: 2.5rem 2rem; border-radius: 20px; color: white; text-align: center;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            box-shadow: 0 20px 40px -10px rgba(30, 58, 138, 0.4);
+            position: sticky; top: 20px;
+            width: 100%; max-width: 100%; border: none;
+        }
+
+        .rule-item { display: flex; gap: 15px; margin-bottom: 1.5rem; }
+        .rule-item:last-child { margin-bottom: 0; }
+        .rule-icon {
+            width: 40px; height: 40px; border-radius: 10px; background: #eff6ff; color: #2563eb;
+            display: flex; justify-content: center; align-items: center; flex-shrink: 0;
+        }
+        .rule-icon.danger { background: #fef2f2; color: #dc2626; }
+        .rule-icon.warning { background: #fff7ed; color: #ea580c; }
+        .rule-text h4 { margin: 0 0 5px 0; font-size: 1rem; color: #1e293b; }
+        .rule-text p { margin: 0; color: #64748b; font-size: 0.9rem; line-height: 1.5; }
+
+        .btn-launch {
+            background: #2563eb; color: white; border: none; padding: 1.2rem 2rem;
+            width: 100%; border-radius: 12px; font-weight: 800; font-size: 1.1rem;
+            cursor: pointer; box-shadow: 0 10px 20px rgba(37, 99, 235, 0.3); transition: transform 0.2s;
+            font-family: 'Poppins', sans-serif;
+        }
+        .btn-launch:hover { transform: translateY(-3px); box-shadow: 0 15px 25px rgba(37, 99, 235, 0.4); }
+
+        .table-responsive { width: 100%; max-width: 100vw; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        .data-table { width: 100%; border-collapse: collapse; white-space: nowrap; }
+        .data-table th { background: #f8fafc; color: #64748b; font-weight: 700; text-transform: uppercase; font-size: 0.8rem; padding: 1rem; text-align: left; }
+        .data-table td { padding: 1rem; border-bottom: 1px solid #e2e8f0; color: #1e293b; vertical-align: middle; }
+
+        .badge-green { background: #dcfce7; color: #166534; padding: 0.3rem 0.8rem; border-radius: 20px; font-weight: 700; font-size: 0.85rem;}
+        .badge-orange { background: #ffedd5; color: #9a3412; padding: 0.3rem 0.8rem; border-radius: 20px; font-weight: 700; font-size: 0.85rem;}
+
+        @media (max-width: 900px) {
+            .dashboard-content { padding: 1rem !important; width: 100vw !important; max-width: 100vw !important; }
+            .welcome-banner { padding: 1.5rem !important; border-radius: 16px !important; width: 100% !important; margin-left: 0 !important; margin-right: 0 !important; }
+            .exam-grid { display: flex; flex-direction: column; gap: 1rem; width: 100% !important; }
+            .exam-launch-col { order: 1; width: 100% !important; }
+            .exam-rules-col { order: 2; width: 100% !important; }
+            .premium-launch-card { position: static; padding: 2rem 1.5rem !important; }
+            .dash-card-alt { padding: 1.5rem !important; }
+            .data-table th, .data-table td { padding: 0.8rem 0.5rem; font-size: 0.85rem; }
+        }
+    </style>
 </head>
-<body class="exam-body">
+<body class="dashboard-body">
 
-<!-- SELECTION SCREEN -->
-<div id="selection-screen" style="min-height:100vh;background:#f8fafc;display:flex;flex-direction:column;">
-    <div style="background:#0f172a;padding:1rem 2rem;display:flex;align-items:center;gap:12px;">
-        <svg width="32" height="32" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style="border-radius:7px;">
-            <rect width="100" height="100" rx="22" fill="url(#lg-ex)"/>
-            <path d="M50 20 L22 75 H36 L43 60 H57 L64 75 H78 L50 20 Z" fill="#ffffff"/>
-            <path d="M32 54 L45 67 L75 32" stroke="#38bdf8" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
-            <defs><linearGradient id="lg-ex" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse"><stop stop-color="#0f172a"/><stop offset="1" stop-color="#1d4ed8"/></linearGradient></defs>
-        </svg>
-        <span style="color:white;font-weight:800;font-size:1.05rem;">AFIT CBT SIM</span>
-        <a href="../dashboard/" style="margin-left:auto;color:#94a3b8;font-size:0.88rem;font-weight:500;">← Back to Dashboard</a>
+    <div class="sidebar-overlay" id="mobile-overlay" onclick="toggleSidebar()"></div>
+
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header" style="display: flex; align-items: center; gap: 12px; padding: 1rem 0;">
+            <svg width="36" height="36" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style="border-radius: 8px; flex-shrink: 0; box-shadow: 0 4px 10px rgba(37,99,235,0.3);">
+                <rect width="100" height="100" rx="22" fill="url(#logo-grad-exams)"/>
+                <path d="M50 20 L22 75 H36 L43 60 H57 L64 75 H78 L50 20 Z" fill="#ffffff"/>
+                <path d="M32 54 L45 67 L75 32" stroke="#38bdf8" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+                <defs>
+                    <linearGradient id="logo-grad-exams" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
+                        <stop stop-color="#0f172a"/>
+                        <stop offset="1" stop-color="#1d4ed8"/>
+                    </linearGradient>
+                </defs>
+            </svg>
+            <span style="font-weight: 800; font-size: 1.15rem; color: #1e293b; letter-spacing: -0.5px; white-space: nowrap;">AFIT CBT SIM</span>
+        </div>
+        
+        <ul class="sidebar-nav">
+            <li>
+                <a href="../dashboard/index.html"><svg style="width: 20px; margin-right: 12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg> Dashboard</a>
+            </li>
+            <li class="active">
+                <a href="index.html"><svg style="width: 20px; margin-right: 12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg> Available Exams</a>
+            </li>
+            <li>
+                <a href="../view-results/index.html"><svg style="width: 20px; margin-right: 12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg> My Results</a>
+            </li>
+            <li>
+                <a href="../profile/index.html"><svg style="width: 20px; margin-right: 12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg> Profile</a>
+            </li>
+        </ul>
+
+        <div class="sidebar-footer">
+            <button class="logout-btn-sidebar" onclick="logout()">Log Out</button>
+        </div>
+    </aside>
+
+    <div class="main-wrapper">
+        <header class="top-header">
+            <button class="mobile-menu-btn" onclick="toggleSidebar()">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                </svg>
+            </button>
+            <div class="avatar" id="user-avatar">?</div>
+        </header>
+
+        <main class="dashboard-content">
+            
+            <div class="welcome-banner" style="margin-bottom: 1.5rem;">
+                <div class="welcome-text">
+                    <h1>Examination Center</h1>
+                    <p>Read the guidelines carefully before starting your Post-UTME test.</p>
+                </div>
+            </div>
+
+            <div class="exam-grid">
+                
+                <div class="exam-rules-col">
+                    <div class="dash-card-alt">
+                        <h3 style="margin-top: 0; margin-bottom: 1.5rem; font-size: 1.2rem; color: #1e293b;">
+                            <svg style="width: 20px; color: #2563eb; vertical-align: middle; margin-right: 5px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            Exam Guidelines
+                        </h3>
+                        
+                        <div class="rule-item">
+                            <div class="rule-icon"><svg style="width: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></div>
+                            <div class="rule-text">
+                                <h4>Time Limit (40 Minutes)</h4>
+                                <p>50 randomly shuffled questions. Exam submits automatically at 00:00.</p>
+                            </div>
+                        </div>
+
+                        <div class="rule-item">
+                            <div class="rule-icon danger"><svg style="width: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg></div>
+                            <div class="rule-text">
+                                <h4>Strict Anti-Malpractice</h4>
+                                <p>Exiting full-screen or switching tabs equals a strike. 3 strikes result in auto-submission.</p>
+                            </div>
+                        </div>
+
+                        <div class="rule-item">
+                            <div class="rule-icon warning"><svg style="width: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg></div>
+                            <div class="rule-text">
+                                <h4>Error Reporting</h4>
+                                <p>Report bad questions to the admin using the 4-character Report ID displayed.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="exam-launch-col">
+                    <div class="premium-launch-card">
+                        <h2 style="margin: 0 0 10px 0; font-size: 1.5rem;">Ready, Aspirant?</h2>
+                        <p id="plan-status" style="color: #93c5fd; font-size: 0.85rem; margin-bottom: 1.5rem;">Loading status...</p>
+                        
+                        <div style="background: rgba(255,255,255,0.1); padding: 1.2rem; border-radius: 12px; margin-bottom: 1.5rem; width: 100%;">
+                            <div style="font-size: 0.75rem; color: #cbd5e1; text-transform: uppercase; letter-spacing: 1px;">Registered JAMB Score</div>
+                            <div style="font-size: 2.2rem; font-weight: 800; color: white;" id="user-jamb-score">--</div>
+                        </div>
+
+                        <div id="launch-container" style="width: 100%; display: flex; flex-direction: column; gap: 10px;">
+                            <button class="btn-launch" disabled>Loading...</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top: 1.5rem;">
+                <div class="dash-card-alt">
+                    <h3 style="margin-top: 0; margin-bottom: 1rem;">
+                        <svg style="width: 20px; color: #ea580c; vertical-align: middle; margin-right: 5px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        Recent Test History
+                    </h3>
+                    
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Date &amp; Time</th>
+                                    <th>Subject Breakdown</th>
+                                    <th>Post-UTME</th>
+                                    <th>Aggregate</th>
+                                </tr>
+                            </thead>
+                            <tbody id="history-body">
+                                <tr><td colspan="4" style="text-align: center; color: #94a3b8; padding: 2rem;">Loading history...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </main>
     </div>
 
-    <div class="exam-select-screen">
-        <h1>Choose Your Exam Type</h1>
-        <p>Select the subject combination that matches your AFIT course application. All exams are 50 questions in 30 minutes.</p>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../static/app.js"></script>
 
-        <div class="course-grid" id="course-grid">
-            <div class="course-card" data-type="science" onclick="selectCourse(this)">
-                <h3>🔬 Science / Engineering</h3>
-                <p>English · GNS · Mathematics · Physics · Chemistry</p>
-            </div>
-            <div class="course-card" data-type="social" onclick="selectCourse(this)">
-                <h3>📊 Social Sciences</h3>
-                <p>English · GNS · Mathematics · Economics · Commerce</p>
-            </div>
-            <div class="course-card" data-type="arts" onclick="selectCourse(this)">
-                <h3>📚 Arts / Humanities</h3>
-                <p>English · GNS · Literature · Government · Mathematics</p>
-            </div>
-            <div class="course-card" data-type="general" onclick="selectCourse(this)">
-                <h3>📝 General Practice</h3>
-                <p>Mixed: English · GNS · Math · Physics · Economics</p>
-            </div>
-        </div>
+    <script>
+        // FIX: store email/userId as module-level vars to avoid inline onclick injection
+        let _pmtEmail  = '';
+        let _pmtUserId = '';
+        let userProfile = null;
 
-        <div style="background:white;border-radius:12px;border:1px solid #e2e8f0;padding:1.25rem;margin-bottom:2rem;text-align:left;font-size:0.9rem;color:#64748b;line-height:1.8;">
-            <strong style="color:#0f172a;">📋 Exam Rules:</strong><br>
-            • 50 multiple-choice questions per session<br>
-            • 30-minute countdown timer (auto-submits when time runs out)<br>
-            • Each question carries 1 mark; no negative marking<br>
-            • Your score + JAMB aggregate is computed automatically
-        </div>
+        document.addEventListener("DOMContentLoaded", async () => {
+            const { data: { session }, error: authError } = await supabaseClient.auth.getSession();
+            if (!session || authError) return window.location.href = '../login/index.html';
 
-        <button class="start-exam-btn" id="start-btn" onclick="startExam()" disabled>Select a Subject Type to Begin</button>
-    </div>
-</div>
+            _pmtEmail  = session.user.email;
+            _pmtUserId = session.user.id;
 
-<!-- EXAM SCREEN (hidden initially) -->
-<div id="exam-screen" style="display:none;">
-    <header class="exam-header">
-        <div>
-            <h2 id="exam-title">AFIT CBT Practice</h2>
-            <p id="exam-subtitle" style="font-size:0.78rem;color:#94a3b8;margin:0;"></p>
-        </div>
-        <div class="exam-timer" id="timer">30:00</div>
-    </header>
+            const { data: profile } = await supabaseClient.from('profiles').select('*').eq('id', session.user.id).single();
+            userProfile = profile;
 
-    <div class="exam-container" id="questions-container">
-        <!-- Questions injected here -->
-    </div>
+            if (profile?.full_name) {
+                const nameParts = profile.full_name.trim().split(/\s+/);
+                let initials = nameParts[0].charAt(0).toUpperCase();
+                if (nameParts.length > 1) initials += nameParts[1].charAt(0).toUpperCase();
+                document.getElementById('user-avatar').innerText = initials;
+            }
 
-    <div class="exam-submit-bar">
-        <div class="exam-progress" id="exam-progress">0 / 50 answered</div>
-        <button class="exam-submit-btn" onclick="confirmSubmit()">Submit Exam</button>
-    </div>
-</div>
+            document.getElementById('user-jamb-score').innerText = profile?.jamb_score || 'Not Set';
 
-<!-- RESULT MODAL -->
-<div id="result-modal" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,0.7);backdrop-filter:blur(6px);z-index:999;display:none;align-items:center;justify-content:center;padding:1rem;">
-    <div style="background:white;border-radius:20px;padding:3rem;max-width:480px;width:100%;text-align:center;box-shadow:0 25px 60px rgba(0,0,0,0.2);">
-        <div style="font-size:4rem;margin-bottom:1rem;" id="result-emoji">🎉</div>
-        <h2 style="font-size:1.8rem;font-weight:800;color:#0f172a;margin-bottom:0.5rem;">Exam Complete!</h2>
-        <p style="color:#64748b;margin-bottom:2rem;" id="result-name-line">Well done, Aspirant!</p>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:2rem;">
-            <div style="background:#eff6ff;border-radius:12px;padding:1.5rem;">
-                <p style="color:#2563eb;font-weight:600;font-size:0.85rem;margin:0 0 0.5rem;">Post-UTME Score</p>
-                <h1 style="color:#1e40af;font-size:2.5rem;font-weight:800;margin:0;" id="res-score">0/50</h1>
-            </div>
-            <div style="background:#f0fdf4;border-radius:12px;padding:1.5rem;border:2px solid #86efac;">
-                <p style="color:#16a34a;font-weight:600;font-size:0.85rem;margin:0 0 0.5rem;">Your Aggregate</p>
-                <h1 style="color:#15803d;font-size:2.5rem;font-weight:800;margin:0;" id="res-agg">0%</h1>
-            </div>
-        </div>
-        <div id="subject-breakdown" style="background:#f8fafc;border-radius:10px;padding:1rem;text-align:left;font-size:0.85rem;margin-bottom:1.5rem;line-height:2;"></div>
-        <div style="display:flex;gap:0.75rem;justify-content:center;">
-            <button onclick="window.location.href='../results/'" style="background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe;padding:0.85rem 1.5rem;border-radius:10px;font-weight:600;cursor:pointer;font-family:'Poppins',sans-serif;transition:all 0.2s;">View History</button>
-            <button onclick="window.location.href='../exams/'" style="background:#2563eb;color:white;border:none;padding:0.85rem 1.5rem;border-radius:10px;font-weight:600;cursor:pointer;font-family:'Poppins',sans-serif;transition:all 0.2s;">Try Again →</button>
-        </div>
-    </div>
-</div>
+            const planStatus     = document.getElementById('plan-status');
+            const launchContainer = document.getElementById('launch-container');
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="../static/app.js"></script>
-<script>
-// ══════════════════════════════════════════════════════════════
-//  QUESTION BANK  (add more questions to grow the pool)
-// ══════════════════════════════════════════════════════════════
-const QB = {
-    english: [
-        { q:"Choose the word nearest in meaning to COPIOUS: ", opts:["Scanty","Abundant","Narrow","Rigid"], ans:1 },
-        { q:"The plural of 'analysis' is:", opts:["analysises","analyzes","analyses","analysi"], ans:2 },
-        { q:"Choose the grammatically correct sentence:", opts:["He don't know","She doesn't knows","They doesn't know","He doesn't know"], ans:3 },
-        { q:"Identify the figure of speech: 'The wind whispered through the trees.'", opts:["Simile","Metaphor","Personification","Hyperbole"], ans:2 },
-        { q:"Select the antonym of BENEVOLENT:", opts:["Kind","Generous","Malevolent","Charitable"], ans:2 },
-        { q:"Which is the correctly spelt word?", opts:["Accomodate","Accommodate","Acommodate","Accomadate"], ans:1 },
-        { q:"Choose the correct form: 'If I _____ you, I would apologise.'", opts:["am","was","were","be"], ans:2 },
-        { q:"What part of speech is the underlined word: 'He ran QUICKLY.'", opts:["Adjective","Noun","Verb","Adverb"], ans:3 },
-        { q:"The passive voice of 'She wrote the letter' is:", opts:["The letter is written by her","The letter was written by her","The letter has been written","The letter will be written by her"], ans:1 },
-        { q:"Choose the word opposite in meaning to EPHEMERAL:", opts:["Temporary","Fleeting","Permanent","Brief"], ans:2 },
-    ],
-    gns: [
-        { q:"The Nigerian constitution that introduced the federal system of government was:", opts:["1951 Macpherson","1954 Lyttleton","1960 Independence","1963 Republican"], ans:1 },
-        { q:"How many states does Nigeria have?", opts:["34","36","38","30"], ans:1 },
-        { q:"The headquarters of ECOWAS is in:", opts:["Accra","Abuja","Lagos","Dakar"], ans:2 },
-        { q:"Who was the first indigenous Governor-General of Nigeria?", opts:["Nnamdi Azikiwe","Abubakar Tafawa Balewa","Obafemi Awolowo","Yakubu Gowon"], ans:0 },
-        { q:"Nigeria gained independence from Britain in:", opts:["1957","1958","1960","1963"], ans:2 },
-        { q:"The highest military honour in Nigeria is:", opts:["OON","CFR","GCFR","MON"], ans:2 },
-        { q:"Which agency is responsible for the conduct of elections in Nigeria?", opts:["NCC","INEC","DSS","NBS"], ans:1 },
-        { q:"The Nigerian Air Force was established in:", opts:["1960","1964","1954","1970"], ans:1 },
-        { q:"AFIT stands for:", opts:["Air Force Institute of Technology","Army Field Intelligence Training","Air Force Intelligence Training","Armed Forces Institute of Training"], ans:0 },
-        { q:"The motto of the Nigerian Air Force is:", opts:["Defend with Honour","Protect and Serve","Above All","Per Ardua Ad Astra"], ans:3 },
-    ],
-    math: [
-        { q:"Simplify: 3x² + 5x − 2x² − 3x", opts:["x² + 2x","5x² + 2x","x² − 2x","5x − x²"], ans:0 },
-        { q:"Find the value of log₁₀(1000):", opts:["2","3","4","10"], ans:1 },
-        { q:"If 2ˣ = 32, find x:", opts:["4","5","6","3"], ans:1 },
-        { q:"A triangle has angles in ratio 2:3:5. Find the largest angle.", opts:["36°","54°","90°","72°"], ans:2 },
-        { q:"Evaluate: ³√−27", opts:["3","−3","9","−9"], ans:1 },
-        { q:"Find the sum of the first 10 terms of AP: 3, 7, 11, …", opts:["193","210","183","220"], ans:1 },
-        { q:"If sin θ = 0.5, then θ equals:", opts:["30°","45°","60°","90°"], ans:0 },
-        { q:"The gradient of the line 2y = 6x − 4 is:", opts:["6","2","3","−2"], ans:2 },
-        { q:"A circle has radius 7 cm. Its area (π = 22/7) is:", opts:["154 cm²","44 cm²","154 cm","22 cm²"], ans:0 },
-        { q:"Factorise completely: x² − 9", opts:["(x−3)²","(x+3)(x−3)","(x+3)²","x(x−9)"], ans:1 },
-    ],
-    physics: [
-        { q:"The SI unit of force is:", opts:["Pascal","Joule","Newton","Watt"], ans:2 },
-        { q:"Which of the following is a vector quantity?", opts:["Mass","Speed","Temperature","Velocity"], ans:3 },
-        { q:"The speed of light in vacuum is approximately:", opts:["3×10⁶ m/s","3×10⁸ m/s","3×10¹⁰ m/s","3×10⁴ m/s"], ans:1 },
-        { q:"Which law states that the pressure of a fixed mass of gas is inversely proportional to its volume at constant temperature?", opts:["Charles's Law","Boyle's Law","Gay-Lussac's Law","Avogadro's Law"], ans:1 },
-        { q:"The phenomenon of light bending when passing through different media is called:", opts:["Reflection","Diffraction","Refraction","Interference"], ans:2 },
-        { q:"Ohm's law states that V = IR. If V = 12V and R = 4Ω, the current I is:", opts:["48A","8A","3A","2A"], ans:2 },
-        { q:"An object is thrown vertically upward. At maximum height, its velocity is:", opts:["Maximum","Minimum but not zero","Zero","Equal to initial velocity"], ans:2 },
-        { q:"Which type of wave does NOT require a medium for propagation?", opts:["Sound wave","Water wave","Electromagnetic wave","Seismic wave"], ans:2 },
-        { q:"The unit of electrical resistance is:", opts:["Volt","Ampere","Ohm","Farad"], ans:2 },
-        { q:"A body of mass 2 kg moving at 3 m/s has kinetic energy of:", opts:["6 J","9 J","12 J","18 J"], ans:1 },
-    ],
-    chemistry: [
-        { q:"The atomic number of Carbon is:", opts:["6","12","8","14"], ans:0 },
-        { q:"Which gas is produced when dilute HCl reacts with zinc?", opts:["Oxygen","Carbon dioxide","Hydrogen","Chlorine"], ans:2 },
-        { q:"The chemical formula of water is:", opts:["HO","H₂O","H₂O₂","HO₂"], ans:1 },
-        { q:"Which of the following is NOT a noble gas?", opts:["Neon","Argon","Nitrogen","Krypton"], ans:2 },
-        { q:"Avogadro's number is approximately:", opts:["6.02×10²³","6.02×10²²","3.01×10²³","1.204×10²³"], ans:0 },
-        { q:"The process of converting liquid to gas is called:", opts:["Condensation","Sublimation","Evaporation","Fusion"], ans:2 },
-        { q:"NaCl is the chemical formula for:", opts:["Sodium carbonate","Common salt","Baking soda","Caustic soda"], ans:1 },
-        { q:"Which of the following is an example of a physical change?", opts:["Burning of wood","Rusting of iron","Melting of ice","Digestion of food"], ans:2 },
-        { q:"The pH of a neutral solution is:", opts:["0","7","14","5"], ans:1 },
-        { q:"Which element has the chemical symbol 'Fe'?", opts:["Fluorine","Francium","Iron","Fermium"], ans:2 },
-    ],
-    economics: [
-        { q:"The demand for a good with elasticity greater than 1 is said to be:", opts:["Inelastic","Perfectly elastic","Elastic","Unitary elastic"], ans:2 },
-        { q:"GDP stands for:", opts:["Gross Domestic Product","General Domestic Product","Gross Development Plan","General Development Product"], ans:0 },
-        { q:"Which of the following is NOT a factor of production?", opts:["Land","Labour","Money","Capital"], ans:2 },
-        { q:"The Law of Diminishing Returns states that:", opts:["Output always increases","As more units are added, marginal output eventually falls","Fixed costs never change","Price always equals marginal cost"], ans:1 },
-        { q:"A monopoly market has:", opts:["Many sellers","Two sellers","One seller","Few sellers"], ans:2 },
-        { q:"Inflation means:", opts:["A decrease in the price level","An increase in the price level","A rise in unemployment","A fall in GDP"], ans:1 },
-        { q:"The central bank of Nigeria is:", opts:["First Bank","Zenith Bank","CBN","GTBank"], ans:2 },
-        { q:"In a free market economy, prices are determined by:", opts:["Government","Demand and Supply","Producers alone","Consumers alone"], ans:1 },
-        { q:"An increase in supply, demand remaining constant, leads to:", opts:["Higher price","Lower price","Same price","No change in quantity"], ans:1 },
-        { q:"The concept of opportunity cost refers to:", opts:["The money spent on a good","The next best alternative forgone","Total cost of production","The profit earned"], ans:1 },
-    ],
-    government: [
-        { q:"Separation of powers was advocated by:", opts:["John Locke","Thomas Hobbes","Baron de Montesquieu","Jean-Jacques Rousseau"], ans:2 },
-        { q:"The Nigerian Senate has how many members?", opts:["360","109","120","96"], ans:1 },
-        { q:"Which arm of government makes laws?", opts:["Executive","Legislature","Judiciary","Bureaucracy"], ans:1 },
-        { q:"Federalism is a system where power is shared between:", opts:["Central and state governments","Two state governments","Military and civilians","President and governor"], ans:0 },
-        { q:"The Universal Declaration of Human Rights was adopted in:", opts:["1945","1948","1960","1963"], ans:1 },
-        { q:"The doctrine of judicial review gives courts the power to:", opts:["Make laws","Nullify laws that conflict with the constitution","Enforce laws","Amend the constitution"], ans:1 },
-        { q:"A parliamentary system of government is one in which:", opts:["The president has absolute power","The executive is responsible to the legislature","The judiciary controls the executive","There are no elections"], ans:1 },
-        { q:"The first Military Head of State of Nigeria was:", opts:["Murtala Muhammed","Olusegun Obasanjo","Yakubu Gowon","J.T.U. Aguiyi-Ironsi"], ans:3 },
-        { q:"A constitution that can be amended by a simple majority is:", opts:["Rigid","Flexible","Written","Unwritten"], ans:1 },
-        { q:"Which of the following is a characteristic of democracy?", opts:["Rule of one person","Rule of law","Military supremacy","Single-party system"], ans:1 },
-    ],
-    literature: [
-        { q:"A play written to be performed is called:", opts:["A novel","A poem","A drama","A prose"], ans:2 },
-        { q:"Who wrote 'Things Fall Apart'?", opts:["Wole Soyinka","Ngugi wa Thiong'o","Chinua Achebe","Ben Okri"], ans:2 },
-        { q:"A soliloquy is when a character:", opts:["Speaks to another character","Speaks alone on stage","Narrates the story","Sings a song"], ans:1 },
-        { q:"The repetition of initial consonant sounds in adjacent words is called:", opts:["Assonance","Rhyme","Alliteration","Onomatopoeia"], ans:2 },
-        { q:"'Romeo and Juliet' was written by:", opts:["Charles Dickens","William Shakespeare","John Keats","George Orwell"], ans:1 },
-        { q:"A protagonist is:", opts:["The villain of a story","The hero or main character","The narrator","A minor character"], ans:1 },
-        { q:"The climax of a story is:", opts:["The introduction","The resolution","The point of highest tension","The falling action"], ans:2 },
-        { q:"Which literary device is used in 'Life is a journey'?", opts:["Simile","Metaphor","Personification","Alliteration"], ans:1 },
-        { q:"An ode is a type of:", opts:["Novel","Drama","Poem","Short story"], ans:2 },
-        { q:"'Animal Farm' by George Orwell is an example of:", opts:["Biography","Satire","Comedy","Tragedy"], ans:1 },
-    ],
-    commerce: [
-        { q:"A bill of lading is a document used in:", opts:["Air transport","Road transport","Sea transport","Rail transport"], ans:2 },
-        { q:"The function of a retailer is to:", opts:["Produce goods","Sell in bulk to wholesalers","Sell to final consumers","Import goods"], ans:2 },
-        { q:"An invoice is a document that:", opts:["Acknowledges receipt of goods","Lists goods sold and their prices","Guarantees payment","Insures goods"], ans:1 },
-        { q:"The primary purpose of insurance is to:", opts:["Make profit","Spread risk","Save money","Invest funds"], ans:1 },
-        { q:"A sole proprietorship is owned by:", opts:["Two persons","A group of people","One person","The government"], ans:2 },
-        { q:"Which of the following is NOT a form of business organisation?", opts:["Partnership","Co-operative","Corporation","Advertisement"], ans:3 },
-        { q:"E-commerce refers to:", opts:["Electronic communication","Buying and selling via the internet","Electronic manufacturing","Corporate emails"], ans:1 },
-        { q:"A debit note is sent by a seller to:", opts:["Notify the buyer of extra charges","Reduce the buyer's balance","Acknowledge payment","Confirm an order"], ans:0 },
-        { q:"The stock exchange deals in:", opts:["Agricultural produce","Currency only","Shares and bonds","Physical goods"], ans:2 },
-        { q:"Working capital is defined as:", opts:["Fixed assets minus liabilities","Current assets minus current liabilities","Total assets minus total liabilities","Profit minus expenses"], ans:1 },
-    ],
-};
+            const { data: resultsData } = await supabaseClient.from('results').select('id').eq('student_id', session.user.id);
+            const actualTestsTaken = resultsData ? resultsData.length : 0;
+            
+            launchContainer.innerHTML = '';
 
-const COURSE_CONFIG = {
-    science:  { label:'Science / Engineering', subjects:['english','gns','math','physics','chemistry'], labels:['ENG','GNS','MTH','PHY','CHM'] },
-    social:   { label:'Social Sciences', subjects:['english','gns','math','economics','commerce'], labels:['ENG','GNS','MTH','ECO','COM'] },
-    arts:     { label:'Arts / Humanities', subjects:['english','gns','literature','government','math'], labels:['ENG','GNS','LIT','GOV','MTH'] },
-    general:  { label:'General Practice', subjects:['english','gns','math','physics','economics'], labels:['ENG','GNS','MTH','PHY','ECO'] },
-};
+            if (profile?.has_paid) {
+                planStatus.innerText = "Premium Plan: Unlimited Access";
+                const btn = document.createElement('button');
+                btn.className = 'btn-launch';
+                btn.style.background = '#16a34a';
+                btn.textContent = 'Start Premium Exam';
+                btn.onclick = () => window.location.href = '../exam-room/';
+                launchContainer.appendChild(btn);
+            } else {
+                if (actualTestsTaken >= 1) {
+                    planStatus.innerText = "Free Limit Reached (1/1)";
+                    const btn = document.createElement('button');
+                    btn.className = 'btn-launch';
+                    btn.style.background = '#ea580c';
+                    btn.textContent = '👑 Unlock Full Access (₦1,050)';
+                    btn.onclick = initiatePayment;
+                    launchContainer.appendChild(btn);
+                } else {
+                    planStatus.innerText = `Free Tier: ${1 - actualTestsTaken} Test${1 - actualTestsTaken !== 1 ? 's' : ''} Remaining`;
+                    
+                    const freeBtn = document.createElement('button');
+                    freeBtn.className = 'btn-launch';
+                    freeBtn.style.background = '#2563eb';
+                    freeBtn.textContent = 'Start Free Test';
+                    freeBtn.onclick = () => window.location.href = '../exam-room/';
+                    
+                    const upgradeBtn = document.createElement('button');
+                    upgradeBtn.className = 'btn-launch';
+                    upgradeBtn.style.cssText = 'background: transparent; border: 2px solid white; color: white;';
+                    upgradeBtn.textContent = '👑 Upgrade Now';
+                    upgradeBtn.onclick = initiatePayment;
+                    
+                    launchContainer.appendChild(freeBtn);
+                    launchContainer.appendChild(upgradeBtn);
+                }
+            }
 
-let selectedType = null;
-let examQuestions = [];
-let userAnswers = {};
-let timerInterval = null;
-let secondsLeft = 30 * 60;
-let sessionUserId = null;
-let sessionProfile = null;
+            fetchHistory(session.user.id);
+        });
 
-(async () => {
-    const { data: { session } } = await supabaseClient.auth.getSession();
-    if (!session) return window.location.href = '../login/';
-    sessionUserId = session.user.id;
-    const { data: profile } = await supabaseClient.from('profiles').select('*').eq('id', session.user.id).single();
-    if (!profile?.full_name) return window.location.href = '../bio-data/';
-    sessionProfile = profile;
-})();
+        // FIX: function uses module-level vars — no user data injected into onclick attributes
+        function initiatePayment() {
+            let handler = PaystackPop.setup({
+                key: 'pk_live_f1ca0bad0d6913267fb525e6c58cd2c447a1ae29', 
+                email: _pmtEmail,
+                amount: 1050 * 100,
+                currency: 'NGN',
+                ref: 'AFIT_' + Date.now(),
+                metadata: {
+                    custom_fields: [{
+                        display_name: "Student ID",
+                        variable_name: "student_id",
+                        value: _pmtUserId
+                    }]
+                },
+                callback: function(response) {
+                    alert('Payment successful! Verifying your account upgrade. The page will refresh momentarily.');
+                    setTimeout(() => window.location.reload(), 3000);
+                },
+                onClose: function() {
+                    alert('Payment process was cancelled.');
+                }
+            });
+            handler.openIframe();
+        }
 
-function selectCourse(el) {
-    document.querySelectorAll('.course-card').forEach(c => c.classList.remove('selected'));
-    el.classList.add('selected');
-    selectedType = el.dataset.type;
-    const btn = document.getElementById('start-btn');
-    btn.disabled = false;
-    btn.innerText = 'Start ' + COURSE_CONFIG[selectedType].label + ' Exam →';
-}
+        async function fetchHistory(userId) {
+            const { data, error } = await supabaseClient
+                .from('results').select('*').eq('student_id', userId)
+                .order('submitted_at', { ascending: false }).limit(10);
+                
+            const tbody = document.getElementById('history-body');
+            
+            if (error || !data || data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #94a3b8; padding: 2rem;">No exams taken yet. Start your first test above!</td></tr>';
+                return;
+            }
 
-function shuffle(arr) { return arr.sort(() => Math.random() - 0.5); }
+            tbody.innerHTML = '';
+            const jambWeight = (userProfile?.jamb_score || 0) / 8;
 
-function startExam() {
-    if (!selectedType) return;
-    const config = COURSE_CONFIG[selectedType];
+            data.forEach((row) => {
+                const dateObj      = new Date(row.submitted_at);
+                const formattedDate = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                const badgeClass   = row.total_score >= 25 ? 'badge-green' : 'badge-orange';
+                const finalAggregate = (jambWeight + row.total_score).toFixed(1);
 
-    // 10 questions per subject (randomised from pool)
-    examQuestions = [];
-    config.subjects.forEach((subj, idx) => {
-        const pool = shuffle([...QB[subj]]).slice(0, 10);
-        pool.forEach(q => examQuestions.push({ ...q, subject: config.labels[idx], subjKey: subj }));
-    });
+                const allScores = [
+                    { name: 'ENG', val: row.english_score },
+                    { name: 'GNS', val: row.gns_score },
+                    { name: 'MTH', val: row.math_score },
+                    { name: 'PHY', val: row.physics_score },
+                    { name: 'CHM', val: row.chemistry_score },
+                    { name: 'ECO', val: row.economics_score },
+                    { name: 'LIT', val: row.literature_score },
+                    { name: 'GOV', val: row.government_score },
+                    { name: 'COM', val: row.commerce_score }
+                ].filter(s => s.val !== undefined && s.val !== null && s.val > 0);
 
-    document.getElementById('selection-screen').style.display = 'none';
-    document.getElementById('exam-screen').style.display = 'block';
-    document.getElementById('exam-title').innerText = config.label + ' — Mock Exam';
-    document.getElementById('exam-subtitle').innerText = '50 questions · 30 minutes · Auto-submits when timer ends';
+                if (allScores.length === 0) allScores.push({ name: 'ENG', val: 0 });
 
-    renderQuestions();
-    startTimer();
-}
+                // Build row using DOM APIs — no user data injected into innerHTML
+                const tr = document.createElement('tr');
 
-function renderQuestions() {
-    const container = document.getElementById('questions-container');
-    container.innerHTML = '';
-    examQuestions.forEach((q, i) => {
-        const card = document.createElement('div');
-        card.className = 'question-card';
-        card.innerHTML = `
-            <div class="q-subject">Question ${i + 1} — ${escHtml(q.subject)}</div>
-            <div class="q-text">${escHtml(q.q)}</div>
-            <div class="q-options" id="opts-${i}">
-                ${q.opts.map((opt, oi) => `
-                    <label class="q-option" id="opt-${i}-${oi}" onclick="selectAnswer(${i}, ${oi}, this.closest('.q-options'))">
-                        <input type="radio" name="q${i}" value="${oi}" style="pointer-events:none;">
-                        <span>${escHtml(opt)}</span>
-                    </label>
-                `).join('')}
-            </div>
-        `;
-        container.appendChild(card);
-    });
-}
+                const tdDate = document.createElement('td');
+                const dateStrong = document.createElement('strong');
+                dateStrong.textContent = formattedDate;
+                tdDate.appendChild(dateStrong);
 
-function selectAnswer(qIdx, optIdx, optsEl) {
-    userAnswers[qIdx] = optIdx;
-    optsEl.querySelectorAll('.q-option').forEach(el => el.classList.remove('selected'));
-    optsEl.querySelector(`#opt-${qIdx}-${optIdx}`)?.classList.add('selected');
-    optsEl.querySelectorAll('input[type="radio"]').forEach((r, i) => { r.checked = (i === optIdx); });
-    document.getElementById('exam-progress').innerText = `${Object.keys(userAnswers).length} / 50 answered`;
-}
+                const tdBreak = document.createElement('td');
+                tdBreak.style.cssText = 'font-size: 0.8rem; color: #475569; line-height: 1.8;';
+                tdBreak.textContent = allScores.map(s => s.name + ':' + s.val).join(' | ');
 
-function startTimer() {
-    const el = document.getElementById('timer');
-    timerInterval = setInterval(() => {
-        secondsLeft--;
-        const m = Math.floor(secondsLeft / 60).toString().padStart(2, '0');
-        const s = (secondsLeft % 60).toString().padStart(2, '0');
-        el.innerText = `${m}:${s}`;
-        if (secondsLeft <= 120) el.classList.add('warning');
-        if (secondsLeft <= 0) { clearInterval(timerInterval); submitExam(); }
-    }, 1000);
-}
+                const tdScore = document.createElement('td');
+                const badge = document.createElement('span');
+                badge.className = 'score-badge ' + badgeClass;
+                badge.textContent = row.total_score + ' / 50';
+                tdScore.appendChild(badge);
 
-function confirmSubmit() {
-    const answered = Object.keys(userAnswers).length;
-    const unanswered = 50 - answered;
-    if (unanswered > 0 && !confirm(`You have ${unanswered} unanswered question(s). Submit anyway?`)) return;
-    clearInterval(timerInterval);
-    submitExam();
-}
+                const tdAgg = document.createElement('td');
+                const aggStrong = document.createElement('strong');
+                aggStrong.style.color = '#0f172a';
+                aggStrong.textContent = finalAggregate + '%';
+                tdAgg.appendChild(aggStrong);
 
-async function submitExam() {
-    // Calculate scores per subject
-    const subjScores = {};
-    examQuestions.forEach((q, i) => {
-        const key = q.subjKey;
-        if (!subjScores[key]) subjScores[key] = 0;
-        if (userAnswers[i] === q.ans) subjScores[key]++;
-    });
-
-    const totalScore = Object.values(subjScores).reduce((a, b) => a + b, 0);
-    const jambWeight = (sessionProfile?.jamb_score || 0) / 8;
-    const aggregate = parseFloat((jambWeight + totalScore).toFixed(1));
-
-    // Save to Supabase
-    const payload = {
-        student_id: sessionUserId,
-        total_score: totalScore,
-        english_score: subjScores['english'] ?? null,
-        gns_score: subjScores['gns'] ?? null,
-        math_score: subjScores['math'] ?? null,
-        physics_score: subjScores['physics'] ?? null,
-        chemistry_score: subjScores['chemistry'] ?? null,
-        economics_score: subjScores['economics'] ?? null,
-        literature_score: subjScores['literature'] ?? null,
-        government_score: subjScores['government'] ?? null,
-        commerce_score: subjScores['commerce'] ?? null,
-        submitted_at: new Date().toISOString(),
-    };
-    await supabaseClient.from('results').insert([payload]);
-
-    // Show result modal
-    document.getElementById('exam-screen').style.display = 'none';
-    const modal = document.getElementById('result-modal');
-    modal.style.display = 'flex';
-
-    document.getElementById('res-score').innerText = totalScore + '/50';
-    document.getElementById('res-agg').innerText = aggregate + '%';
-    document.getElementById('result-name-line').innerText = `Well done, ${sessionProfile?.full_name?.split(' ')[0] || 'Aspirant'}!`;
-    document.getElementById('result-emoji').innerText = totalScore >= 35 ? '🏆' : totalScore >= 25 ? '✅' : '💪';
-
-    let breakHtml = '<strong style="color:#0f172a;">Subject Breakdown:</strong><br>';
-    const config = COURSE_CONFIG[selectedType];
-    config.subjects.forEach((s, i) => {
-        const sc = subjScores[s] ?? 0;
-        breakHtml += `${config.labels[i]}: <strong>${sc}/10</strong> &nbsp;`;
-    });
-    document.getElementById('subject-breakdown').innerHTML = breakHtml;
-}
-</script>
+                tr.append(tdDate, tdBreak, tdScore, tdAgg);
+                tbody.appendChild(tr);
+            });
+        }
+    </script>
 </body>
 </html>

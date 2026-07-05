@@ -3,41 +3,84 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Admin Panel — AFIT CBT Simulator</title>
-    <link rel="icon" type="image/png" href="../static/img/afitcbtsim-logo.png">
+    <title>Admin Command Center — AFIT CBT Simulator</title>
+    <link rel="icon" type="image/svg+xml" href="../static/img/afitcbtsim-logo.svg">
+    <link rel="icon" type="image/png" sizes="512x512" href="../static/img/afitcbtsim-logo.png">
     <link rel="icon" href="../favicon.ico" type="image/x-icon">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../static/main.css">
     <style>
-        .admin-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 1.25rem; margin-bottom: 2rem; }
-        .admin-grid .stat-card { padding: 1.25rem; }
-        .action-badge { display: inline-block; padding: 0.3rem 0.7rem; border-radius: 6px; font-size:0.78rem; font-weight:700; cursor:pointer; border:none; font-family:'Poppins',sans-serif; transition: all 0.2s; }
-        .action-badge.danger { background:#fef2f2; color:#ef4444; }
-        .action-badge.danger:hover { background:#ef4444; color:white; }
-        .action-badge.promote { background:#eff6ff; color:#2563eb; }
-        .action-badge.promote:hover { background:#2563eb; color:white; }
-        @media(max-width:900px){ .admin-grid{ grid-template-columns:1fr 1fr; } }
-        @media(max-width:600px){ .admin-grid{ grid-template-columns:1fr; } }
+        html, body { max-width: 100vw !important; overflow-x: hidden !important; }
+        *, *::before, *::after { box-sizing: border-box !important; }
+
+        .admin-card { background: white; border-radius: 16px; border: 1px solid #e2e8f0; padding: 2rem; margin-bottom: 1.5rem; }
+        .admin-card h3 { font-size: 1.05rem; font-weight: 700; color: #0f172a; margin: 0 0 1.5rem; display: flex; align-items: center; gap: 8px; }
+
+        .user-table-wrap { overflow-x: auto; border-radius: 12px; border: 1px solid #e2e8f0; max-height: 520px; overflow-y: auto; }
+        .user-table { width: 100%; border-collapse: collapse; white-space: nowrap; }
+        .user-table th { background: #f8fafc; color: #64748b; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; padding: 0.9rem 1rem; text-align: left; position: sticky; top: 0; z-index: 5; }
+        .user-table td { padding: 0.9rem 1rem; border-bottom: 1px solid #f1f5f9; font-size: 0.88rem; color: #334155; vertical-align: middle; }
+        .user-table tr:hover td { background: #f8fafc; }
+
+        .pill { padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.75rem; font-weight: 700; display: inline-block; }
+        .pill-green  { background: #f0fdf4; color: #16a34a; }
+        .pill-orange { background: #fff7ed; color: #ea580c; }
+        .pill-blue   { background: #eff6ff; color: #2563eb; }
+        .pill-purple { background: #faf5ff; color: #7c3aed; }
+        .pill-gray   { background: #f1f5f9; color: #64748b; }
+
+        .action-btn { padding: 0.3rem 0.75rem; border-radius: 6px; font-size: 0.75rem; font-weight: 700; cursor: pointer; border: none; font-family: 'Poppins', sans-serif; transition: all 0.15s; }
+        .action-btn.green  { background: #f0fdf4; color: #16a34a; }
+        .action-btn.green:hover  { background: #16a34a; color: white; }
+        .action-btn.blue   { background: #eff6ff; color: #2563eb; }
+        .action-btn.blue:hover   { background: #2563eb; color: white; }
+        .action-btn.red    { background: #fef2f2; color: #ef4444; }
+        .action-btn.red:hover    { background: #ef4444; color: white; }
+        .action-btn.orange { background: #fff7ed; color: #ea580c; }
+        .action-btn.orange:hover { background: #ea580c; color: white; }
+        .action-btns-cell  { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+
+        .filter-row { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1.5rem; align-items: center; }
+        .filter-inp { padding: 0.6rem 1rem; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.88rem; font-family: 'Poppins', sans-serif; outline: none; }
+        .filter-inp:focus { border-color: #2563eb; }
+
+        .stats-row4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+        .mini-stat { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1.1rem 1.4rem; }
+        .mini-stat .val { font-size: 2rem; font-weight: 800; color: #0f172a; line-height: 1; }
+        .mini-stat .lbl { font-size: 0.75rem; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; }
+
+        .search-users { width: 280px; }
+
+        @media(max-width: 900px) {
+            .stats-row4 { grid-template-columns: 1fr 1fr; }
+            .dashboard-content { padding: 1rem !important; }
+        }
+        @media(max-width: 600px) {
+            .stats-row4 { grid-template-columns: 1fr; }
+            .search-users { width: 100%; }
+        }
     </style>
 </head>
 <body class="dashboard-body">
 
 <div class="sidebar-overlay" id="mobile-overlay" onclick="toggleSidebar()"></div>
+
 <aside class="sidebar" id="sidebar">
-    <div class="sidebar-header">
+    <div class="sidebar-header" style="display:flex;align-items:center;gap:12px;padding:1rem 0;">
         <svg width="36" height="36" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style="border-radius:8px;flex-shrink:0;">
-            <rect width="100" height="100" rx="22" fill="url(#lg-a)"/>
+            <rect width="100" height="100" rx="22" fill="url(#lg-admin)"/>
             <path d="M50 20 L22 75 H36 L43 60 H57 L64 75 H78 L50 20 Z" fill="#ffffff"/>
             <path d="M32 54 L45 67 L75 32" stroke="#38bdf8" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
-            <defs><linearGradient id="lg-a" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse"><stop stop-color="#0f172a"/><stop offset="1" stop-color="#1d4ed8"/></linearGradient></defs>
+            <defs><linearGradient id="lg-admin" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse"><stop stop-color="#0f172a"/><stop offset="1" stop-color="#1d4ed8"/></linearGradient></defs>
         </svg>
-        <span>ADMIN PANEL</span>
+        <span style="font-weight:800;font-size:1rem;color:#1e293b;letter-spacing:-0.5px;white-space:nowrap;">CMD CENTER</span>
     </div>
     <ul class="sidebar-nav">
-        <li class="active"><a href="index.html"><svg style="width:20px;margin-right:12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>Overview</a></li>
-        <li><a href="../dashboard/"><svg style="width:20px;margin-right:12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>Back to App</a></li>
+        <li class="active"><a href="index.html"><svg style="width:20px;margin-right:12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"/></svg>Command Center</a></li>
+        <li><a href="../admin-staging/index.html"><svg style="width:20px;margin-right:12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>Question Staging</a></li>
+        <li><a href="../dashboard/index.html"><svg style="width:20px;margin-right:12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>Back to App</a></li>
     </ul>
     <div class="sidebar-footer">
         <button class="logout-btn-sidebar" onclick="logout()">Log Out</button>
@@ -49,57 +92,92 @@
         <button class="mobile-menu-btn" onclick="toggleSidebar()">
             <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>
         </button>
-        <div style="display:flex;align-items:center;gap:1rem;">
-            <span style="background:#fef3c7;color:#d97706;font-size:0.78rem;font-weight:700;padding:0.3rem 0.8rem;border-radius:99px;">ADMIN</span>
+        <div style="display:flex;align-items:center;gap:0.75rem;">
+            <span style="background:#fef2f2;color:#ef4444;font-size:0.75rem;font-weight:700;padding:0.3rem 0.8rem;border-radius:99px;letter-spacing:0.5px;">SUPER ADMIN</span>
             <div class="avatar" id="user-avatar">A</div>
         </div>
     </header>
 
     <main class="dashboard-content">
-
-        <div style="margin-bottom:2rem;">
-            <h1 style="font-size:1.8rem;font-weight:800;color:#0f172a;">Admin Overview</h1>
-            <p style="color:#64748b;">Platform-wide statistics and user management.</p>
+        <div style="margin-bottom:1.5rem;">
+            <h1 style="font-size:1.8rem;font-weight:800;color:#0f172a;letter-spacing:-0.5px;">Command Center</h1>
+            <p style="color:#64748b;">Manage all users, payments, and system flags from one place.</p>
         </div>
 
-        <div class="admin-grid">
-            <div class="stat-card">
-                <div class="stat-icon blue"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:28px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg></div>
-                <div class="stat-info"><h4>Total Users</h4><div class="stat-val" id="stat-users">—</div></div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon green"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:28px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg></div>
-                <div class="stat-info"><h4>Total Exams</h4><div class="stat-val" id="stat-exams">—</div></div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon purple"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:28px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg></div>
-                <div class="stat-info"><h4>Avg Score</h4><div class="stat-val" id="stat-avg">—</div></div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon" style="background:#fef3c7;color:#d97706;"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:28px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
-                <div class="stat-info"><h4>Active Today</h4><div class="stat-val" id="stat-today">—</div></div>
-            </div>
+        <div class="stats-row4" id="admin-stats">
+            <div class="mini-stat"><div class="val" id="s-users">—</div><div class="lbl">Total Users</div></div>
+            <div class="mini-stat"><div class="val" id="s-paid" style="color:#16a34a;">—</div><div class="lbl">Premium Users</div></div>
+            <div class="mini-stat"><div class="val" id="s-exams">—</div><div class="lbl">Exams Taken</div></div>
+            <div class="mini-stat"><div class="val" id="s-today">—</div><div class="lbl">Signups Today</div></div>
         </div>
 
-        <div class="admin-table-card">
-            <div class="admin-table-header">
-                <h3>All Registered Users</h3>
-                <input type="text" class="search-input" id="search-input" placeholder="Search by name or email…" oninput="filterUsers()">
+        <!-- USER MANAGEMENT -->
+        <div class="admin-card">
+            <h3>
+                <svg style="width:20px;color:#2563eb;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                User Management
+            </h3>
+
+            <div class="filter-row">
+                <input type="text" class="filter-inp search-users" id="search-users" placeholder="Search name or email…" oninput="filterUsers()">
+                <select class="filter-inp" id="filter-plan" onchange="filterUsers()">
+                    <option value="">All Plans</option>
+                    <option value="paid">Premium</option>
+                    <option value="free">Free</option>
+                </select>
+                <select class="filter-inp" id="filter-role" onchange="filterUsers()">
+                    <option value="">All Roles</option>
+                    <option value="admin">Admin</option>
+                    <option value="jnr-admin">Jnr Admin</option>
+                    <option value="user">User</option>
+                </select>
+                <button onclick="loadUsers()" style="padding:0.6rem 1rem;background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe;border-radius:8px;font-weight:600;cursor:pointer;font-family:'Poppins',sans-serif;font-size:0.88rem;">↻ Refresh</button>
             </div>
-            <div style="overflow-x:auto;max-height:600px;overflow-y:auto;">
-                <table class="data-table" style="white-space:nowrap;">
+
+            <div class="user-table-wrap">
+                <table class="user-table">
                     <thead>
                         <tr>
-                            <th style="position:sticky;top:0;background:#f8fafc;z-index:10;">Name</th>
-                            <th style="position:sticky;top:0;background:#f8fafc;z-index:10;">Email</th>
-                            <th style="position:sticky;top:0;background:#f8fafc;z-index:10;">JAMB</th>
-                            <th style="position:sticky;top:0;background:#f8fafc;z-index:10;">Course</th>
-                            <th style="position:sticky;top:0;background:#f8fafc;z-index:10;">Role</th>
-                            <th style="position:sticky;top:0;background:#f8fafc;z-index:10;">Actions</th>
+                            <th>Name</th>
+                            <th>Phone</th>
+                            <th>Program</th>
+                            <th>Course</th>
+                            <th>JAMB</th>
+                            <th>State</th>
+                            <th>Plan</th>
+                            <th>Role</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody id="users-tbody">
-                        <tr><td colspan="6" style="text-align:center;color:#94a3b8;padding:3rem;">Loading users…</td></tr>
+                        <tr><td colspan="9" style="text-align:center;color:#94a3b8;padding:3rem;">Loading users…</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- RECENT EXAM RESULTS -->
+        <div class="admin-card">
+            <h3>
+                <svg style="width:20px;color:#ea580c;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+                Recent Exam Results (Platform-wide)
+            </h3>
+            <div class="user-table-wrap">
+                <table class="user-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Student Name</th>
+                            <th>ENG</th>
+                            <th>GNS</th>
+                            <th>MTH</th>
+                            <th>PHY/ECO/LIT</th>
+                            <th>CHM/COM/GOV</th>
+                            <th>Post-UTME</th>
+                        </tr>
+                    </thead>
+                    <tbody id="results-tbody">
+                        <tr><td colspan="8" style="text-align:center;color:#94a3b8;padding:3rem;">Loading results…</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -111,86 +189,185 @@
 <script src="../static/app.js"></script>
 <script>
 let allUsers = [];
+let profilesMap = {};
 
 document.addEventListener('DOMContentLoaded', async () => {
     const { data: { session } } = await supabaseClient.auth.getSession();
-    if (!session) return window.location.href = '../login/';
+    if (!session) return window.location.href = '../login/index.html';
 
     const { data: me } = await supabaseClient.from('profiles').select('role,full_name').eq('id', session.user.id).single();
     if (!me || me.role !== 'admin') {
-        alert('Access denied. Admins only.');
-        return window.location.href = '../dashboard/';
+        alert('Access denied. Super Admins only.');
+        return window.location.href = '../dashboard/index.html';
     }
 
     const parts = (me.full_name || 'Admin').split(' ');
-    document.getElementById('user-avatar').innerText = (parts[0][0] + (parts[1]?.[0] || '')).toUpperCase();
+    document.getElementById('user-avatar').textContent = (parts[0][0] + (parts[1]?.[0] || '')).toUpperCase();
 
-    // Load stats
-    const { count: userCount } = await supabaseClient.from('profiles').select('*', { count: 'exact', head: true });
-    const { count: examCount } = await supabaseClient.from('results').select('*', { count: 'exact', head: true });
-    document.getElementById('stat-users').innerText = userCount ?? '—';
-    document.getElementById('stat-exams').innerText = examCount ?? '—';
-
-    const { data: avgData } = await supabaseClient.from('results').select('total_score');
-    if (avgData?.length) {
-        const avg = (avgData.reduce((s, r) => s + r.total_score, 0) / avgData.length).toFixed(1);
-        document.getElementById('stat-avg').innerText = avg + '/50';
-    }
-
-    const today = new Date().toISOString().split('T')[0];
-    const { count: todayCount } = await supabaseClient.from('results').select('*', { count: 'exact', head: true }).gte('submitted_at', today);
-    document.getElementById('stat-today').innerText = todayCount ?? '0';
-
-    // Load users
-    const { data: users } = await supabaseClient.from('profiles').select('id,full_name,role,jamb_score,course_applied').order('full_name');
-    const { data: authUsers } = await supabaseClient.auth.admin?.listUsers().catch(() => ({ data: null })) || {};
-
-    allUsers = users || [];
-    renderUsers(allUsers);
+    await loadUsers();
+    await loadRecentResults();
 });
+
+async function loadUsers() {
+    const { data, error } = await supabaseClient.from('profiles').select('*').order('full_name', { ascending: true });
+    if (error || !data) {
+        document.getElementById('users-tbody').innerHTML = '<tr><td colspan="9" style="text-align:center;color:#ef4444;padding:2rem;">Error loading users: ' + (error?.message || 'Unknown') + '</td></tr>';
+        return;
+    }
+    allUsers = data;
+    data.forEach(u => profilesMap[u.id] = u);
+
+    // Stats
+    document.getElementById('s-users').textContent = data.length;
+    document.getElementById('s-paid').textContent  = data.filter(u => u.has_paid).length;
+    const today = new Date().toISOString().substring(0, 10);
+    document.getElementById('s-today').textContent = data.filter(u => (u.created_at || '').startsWith(today)).length;
+
+    filterUsers();
+}
+
+function filterUsers() {
+    const search = document.getElementById('search-users').value.toLowerCase();
+    const plan   = document.getElementById('filter-plan').value;
+    const role   = document.getElementById('filter-role').value;
+    const filtered = allUsers.filter(u => {
+        const name  = (u.full_name || '').toLowerCase();
+        const planOk = !plan || (plan === 'paid' ? !!u.has_paid : !u.has_paid);
+        const roleOk = !role || (role === 'user' ? !u.role : u.role === role);
+        return planOk && roleOk && (!search || name.includes(search));
+    });
+    renderUsers(filtered);
+}
 
 function renderUsers(users) {
     const tbody = document.getElementById('users-tbody');
     if (!users.length) {
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#94a3b8;padding:2rem;">No users found.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:#94a3b8;padding:2rem;">No users match your filter.</td></tr>';
         return;
     }
     tbody.innerHTML = '';
     users.forEach(u => {
         const tr = document.createElement('tr');
-        const roleColor = u.role === 'admin' ? '#d97706' : '#64748b';
-        tr.innerHTML = `
-            <td style="font-weight:600;">${escHtml(u.full_name || '—')}</td>
-            <td style="font-size:0.88rem;color:#64748b;">${escHtml(u.id.substring(0,8))}…</td>
-            <td>${escHtml(String(u.jamb_score ?? '—'))}</td>
-            <td style="font-size:0.85rem;max-width:200px;overflow:hidden;text-overflow:ellipsis;">${escHtml(u.course_applied || '—')}</td>
-            <td><span style="font-size:0.78rem;font-weight:700;color:${roleColor};text-transform:uppercase;">${escHtml(u.role || 'user')}</span></td>
-            <td style="display:flex;gap:0.5rem;">
-                ${u.role !== 'admin'
-                    ? `<button class="action-badge promote" onclick="setRole('${escHtml(u.id)}','admin')">Make Admin</button>`
-                    : `<button class="action-badge danger" onclick="setRole('${escHtml(u.id)}','user')">Revoke Admin</button>`
-                }
-            </td>
-        `;
+        
+        // All cells use textContent — safe against XSS
+        const mkTd = (text, style) => { const td = document.createElement('td'); td.textContent = text || '—'; if (style) td.style.cssText = style; return td; };
+
+        const planPill = document.createElement('span');
+        planPill.className = 'pill ' + (u.has_paid ? 'pill-green' : 'pill-gray');
+        planPill.textContent = u.has_paid ? 'Premium' : 'Free';
+        const tdPlan = document.createElement('td'); tdPlan.appendChild(planPill);
+
+        const rolePill = document.createElement('span');
+        rolePill.className = 'pill ' + (u.role === 'admin' ? 'pill-purple' : u.role === 'jnr-admin' ? 'pill-blue' : 'pill-gray');
+        rolePill.textContent = u.role === 'admin' ? 'Super Admin' : u.role === 'jnr-admin' ? 'Jnr Admin' : 'User';
+        const tdRole = document.createElement('td'); tdRole.appendChild(rolePill);
+
+        const tdActs = document.createElement('td');
+        const actsDiv = document.createElement('div'); actsDiv.className = 'action-btns-cell';
+
+        if (!u.has_paid) {
+            const btn = document.createElement('button');
+            btn.className = 'action-btn green'; btn.textContent = 'Grant Premium';
+            btn.onclick = () => grantPremium(u.id);
+            actsDiv.appendChild(btn);
+        } else {
+            const btn = document.createElement('button');
+            btn.className = 'action-btn orange'; btn.textContent = 'Revoke Premium';
+            btn.onclick = () => revokePremium(u.id);
+            actsDiv.appendChild(btn);
+        }
+
+        if (!u.role) {
+            const btn = document.createElement('button');
+            btn.className = 'action-btn blue'; btn.textContent = 'Make Jnr Admin';
+            btn.onclick = () => setRole(u.id, 'jnr-admin');
+            actsDiv.appendChild(btn);
+        }
+        if (u.role === 'jnr-admin') {
+            const btn = document.createElement('button');
+            btn.className = 'action-btn red'; btn.textContent = 'Remove Role';
+            btn.onclick = () => setRole(u.id, null);
+            actsDiv.appendChild(btn);
+        }
+        tdActs.appendChild(actsDiv);
+
+        tr.append(
+            mkTd(u.full_name, 'font-weight:600;'),
+            mkTd(u.phone_number),
+            mkTd(u.program_type),
+            mkTd(u.course_applied),
+            mkTd(u.jamb_score),
+            mkTd(u.state_of_origin),
+            tdPlan, tdRole, tdActs
+        );
         tbody.appendChild(tr);
     });
 }
 
-function filterUsers() {
-    const q = document.getElementById('search-input').value.toLowerCase();
-    renderUsers(allUsers.filter(u =>
-        (u.full_name || '').toLowerCase().includes(q) ||
-        (u.course_applied || '').toLowerCase().includes(q)
-    ));
+async function grantPremium(userId) {
+    if (!confirm('Grant Premium access to this user?')) return;
+    const { error } = await supabaseClient.from('profiles').update({ has_paid: true }).eq('id', userId);
+    if (error) { alert('Error: ' + error.message); return; }
+    const u = allUsers.find(u => u.id === userId);
+    if (u) u.has_paid = true;
+    filterUsers();
+}
+
+async function revokePremium(userId) {
+    if (!confirm('Revoke Premium access from this user?')) return;
+    const { error } = await supabaseClient.from('profiles').update({ has_paid: false }).eq('id', userId);
+    if (error) { alert('Error: ' + error.message); return; }
+    const u = allUsers.find(u => u.id === userId);
+    if (u) u.has_paid = false;
+    filterUsers();
 }
 
 async function setRole(userId, role) {
-    if (!confirm(`Set this user's role to "${role}"?`)) return;
-    const { error } = await supabaseClient.from('profiles').update({ role }).eq('id', userId);
+    const verb = role ? 'Assign role ' + role + ' to' : 'Remove admin role from';
+    if (!confirm(verb + ' this user?')) return;
+    const { error } = await supabaseClient.from('profiles').update({ role: role }).eq('id', userId);
     if (error) { alert('Error: ' + error.message); return; }
-    const i = allUsers.findIndex(u => u.id === userId);
-    if (i !== -1) allUsers[i].role = role;
-    renderUsers(allUsers);
+    const u = allUsers.find(u => u.id === userId);
+    if (u) u.role = role;
+    filterUsers();
+}
+
+async function loadRecentResults() {
+    const { data, error } = await supabaseClient
+        .from('results').select('*')
+        .order('submitted_at', { ascending: false }).limit(50);
+
+    const tbody = document.getElementById('results-tbody');
+    document.getElementById('s-exams').textContent = data?.length ?? '—';
+
+    if (error || !data?.length) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#94a3b8;padding:2rem;">No exam results found.</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = '';
+    data.forEach(r => {
+        const dateStr = new Date(r.submitted_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+        const profile  = profilesMap[r.student_id];
+        const name     = profile?.full_name || 'Unknown';
+
+        const col4 = r.physics_score ?? r.economics_score ?? r.literature_score ?? '—';
+        const col5 = r.chemistry_score ?? r.commerce_score ?? r.government_score ?? '—';
+
+        const tr = document.createElement('tr');
+        const mkTd = text => { const td = document.createElement('td'); td.textContent = String(text ?? '—'); return td; };
+
+        const tdName = document.createElement('td');
+        const b = document.createElement('strong'); b.textContent = name;
+        tdName.appendChild(b);
+
+        const scoreSpan = document.createElement('span'); scoreSpan.className = 'pill ' + (r.total_score >= 25 ? 'pill-green' : 'pill-orange');
+        scoreSpan.textContent = r.total_score + '/50';
+        const tdScore = document.createElement('td'); tdScore.appendChild(scoreSpan);
+
+        tr.append(mkTd(dateStr), tdName, mkTd(r.english_score), mkTd(r.gns_score), mkTd(r.math_score), mkTd(col4), mkTd(col5), tdScore);
+        tbody.appendChild(tr);
+    });
 }
 </script>
 </body>
