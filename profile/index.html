@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Settings — AFIT CBT Simulator</title>
+    <link rel="icon" type="image/png" href="../static/img/afitcbtsim-logo.png">
+    <link rel="icon" href="../favicon.ico" type="image/x-icon">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../static/main.css">
+</head>
+<body class="dashboard-body">
+
+<div class="sidebar-overlay" id="mobile-overlay" onclick="toggleSidebar()"></div>
+<aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <svg width="36" height="36" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style="border-radius:8px;flex-shrink:0;box-shadow:0 4px 10px rgba(37,99,235,0.3);">
+            <rect width="100" height="100" rx="22" fill="url(#lg-p)"/>
+            <path d="M50 20 L22 75 H36 L43 60 H57 L64 75 H78 L50 20 Z" fill="#ffffff"/>
+            <path d="M32 54 L45 67 L75 32" stroke="#38bdf8" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+            <defs><linearGradient id="lg-p" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse"><stop stop-color="#0f172a"/><stop offset="1" stop-color="#1d4ed8"/></linearGradient></defs>
+        </svg>
+        <span>AFIT CBT SIM</span>
+    </div>
+    <ul class="sidebar-nav">
+        <li><a href="../dashboard/"><svg style="width:20px;margin-right:12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>Dashboard</a></li>
+        <li><a href="../exams/"><svg style="width:20px;margin-right:12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>Exams</a></li>
+        <li><a href="../results/"><svg style="width:20px;margin-right:12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>My Results</a></li>
+        <li class="active"><a href="index.html"><svg style="width:20px;margin-right:12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>Settings</a></li>
+    </ul>
+    <div class="sidebar-footer">
+        <button class="logout-btn-sidebar" onclick="logout()">Log Out</button>
+    </div>
+</aside>
+
+<div class="main-wrapper">
+    <header class="top-header">
+        <button class="mobile-menu-btn" onclick="toggleSidebar()">
+            <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>
+        </button>
+        <div class="avatar" id="user-avatar">?</div>
+    </header>
+
+    <main class="dashboard-content">
+        <div style="margin-bottom:2rem;">
+            <h1 style="font-size:1.8rem;font-weight:800;color:#0f172a;">Account Settings</h1>
+            <p style="color:#64748b;margin-top:0.25rem;">Update your personal information and JAMB score.</p>
+        </div>
+
+        <div class="profile-form-card">
+            <h3>Personal Information</h3>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="full_name">Full Name (Surname First)</label>
+                    <input type="text" id="full_name" placeholder="Okonkwo Chukwuemeka">
+                </div>
+                <div class="form-group">
+                    <label for="jamb_score">JAMB Score (100–400)</label>
+                    <input type="number" id="jamb_score" min="100" max="400" placeholder="e.g. 242">
+                </div>
+                <div class="form-group">
+                    <label for="course_applied">Course Applied For</label>
+                    <select id="course_applied">
+                        <option value="">Select course…</option>
+                        <optgroup label="Engineering">
+                            <option>Electrical/Electronic Engineering</option>
+                            <option>Mechanical Engineering</option>
+                            <option>Civil Engineering</option>
+                            <option>Computer Engineering</option>
+                            <option>Aeronautical Engineering</option>
+                        </optgroup>
+                        <optgroup label="Sciences">
+                            <option>Computer Science</option>
+                            <option>Physics</option>
+                            <option>Mathematics</option>
+                            <option>Chemistry</option>
+                        </optgroup>
+                        <optgroup label="Social Sciences">
+                            <option>Accounting</option>
+                            <option>Business Administration</option>
+                            <option>Economics</option>
+                            <option>Public Administration</option>
+                        </optgroup>
+                        <optgroup label="Arts & Humanities">
+                            <option>English Language</option>
+                            <option>History & War Studies</option>
+                            <option>Mass Communication</option>
+                        </optgroup>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="state_of_origin">State of Origin</label>
+                    <select id="state_of_origin">
+                        <option value="">Select state…</option>
+                        <option>Abia</option><option>Adamawa</option><option>Akwa Ibom</option>
+                        <option>Anambra</option><option>Bauchi</option><option>Bayelsa</option>
+                        <option>Benue</option><option>Borno</option><option>Cross River</option>
+                        <option>Delta</option><option>Ebonyi</option><option>Edo</option>
+                        <option>Ekiti</option><option>Enugu</option><option>FCT</option>
+                        <option>Gombe</option><option>Imo</option><option>Jigawa</option>
+                        <option>Kaduna</option><option>Kano</option><option>Katsina</option>
+                        <option>Kebbi</option><option>Kogi</option><option>Kwara</option>
+                        <option>Lagos</option><option>Nasarawa</option><option>Niger</option>
+                        <option>Ogun</option><option>Ondo</option><option>Osun</option>
+                        <option>Oyo</option><option>Plateau</option><option>Rivers</option>
+                        <option>Sokoto</option><option>Taraba</option><option>Yobe</option>
+                        <option>Zamfara</option>
+                    </select>
+                </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:1rem;margin-top:0.5rem;">
+                <button class="save-btn" id="save-btn" onclick="saveProfile()">Save Changes</button>
+                <span id="save-msg" style="font-size:0.88rem;font-weight:500;"></span>
+            </div>
+        </div>
+
+        <div class="profile-form-card" style="margin-top:1.5rem;">
+            <h3>Account</h3>
+            <p style="color:#64748b;font-size:0.9rem;margin-bottom:1.5rem;">Your email address is your unique identifier and cannot be changed.</p>
+            <div class="form-group" style="max-width:400px;">
+                <label>Email Address</label>
+                <input type="email" id="user-email" disabled style="background:#f8fafc;color:#94a3b8;cursor:not-allowed;">
+            </div>
+            <button onclick="logout()" style="background:#fef2f2;color:#ef4444;border:1px solid rgba(239,68,68,0.2);padding:0.75rem 1.5rem;border-radius:8px;font-weight:600;cursor:pointer;font-family:'Poppins',sans-serif;transition:all 0.2s;">Sign Out of This Device</button>
+        </div>
+    </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../static/app.js"></script>
+<script>
+let currentUserId = null;
+
+document.addEventListener('DOMContentLoaded', async () => {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (!session) return window.location.href = '../login/';
+    currentUserId = session.user.id;
+
+    document.getElementById('user-email').value = session.user.email;
+
+    const { data: profile } = await supabaseClient.from('profiles').select('*').eq('id', session.user.id).single();
+    if (!profile) return;
+
+    const parts = (profile.full_name || '').trim().split(/\s+/);
+    let initials = parts[0]?.[0]?.toUpperCase() || '?';
+    if (parts.length > 1) initials += parts[1][0].toUpperCase();
+    document.getElementById('user-avatar').innerText = initials;
+
+    document.getElementById('full_name').value = profile.full_name || '';
+    document.getElementById('jamb_score').value = profile.jamb_score || '';
+
+    const courseEl = document.getElementById('course_applied');
+    for (let opt of courseEl.options) {
+        if (opt.value === profile.course_applied) { opt.selected = true; break; }
+    }
+    const stateEl = document.getElementById('state_of_origin');
+    for (let opt of stateEl.options) {
+        if (opt.value === profile.state_of_origin) { opt.selected = true; break; }
+    }
+});
+
+async function saveProfile() {
+    const btn = document.getElementById('save-btn');
+    const msg = document.getElementById('save-msg');
+    btn.disabled = true; btn.innerText = 'Saving…';
+
+    const jamb = parseInt(document.getElementById('jamb_score').value, 10);
+    if (isNaN(jamb) || jamb < 100 || jamb > 400) {
+        msg.innerText = 'JAMB score must be 100–400.';
+        msg.style.color = '#ef4444';
+        btn.disabled = false; btn.innerText = 'Save Changes';
+        return;
+    }
+
+    const { error } = await supabaseClient.from('profiles').update({
+        full_name: document.getElementById('full_name').value.trim(),
+        jamb_score: jamb,
+        course_applied: document.getElementById('course_applied').value,
+        state_of_origin: document.getElementById('state_of_origin').value || null
+    }).eq('id', currentUserId);
+
+    btn.disabled = false; btn.innerText = 'Save Changes';
+    if (error) {
+        msg.innerText = 'Error: ' + error.message; msg.style.color = '#ef4444';
+    } else {
+        msg.innerText = '✓ Saved successfully!'; msg.style.color = '#10b981';
+        setTimeout(() => msg.innerText = '', 3000);
+    }
+}
+</script>
+</body>
+</html>

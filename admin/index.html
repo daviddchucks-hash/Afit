@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Admin Panel — AFIT CBT Simulator</title>
+    <link rel="icon" type="image/png" href="../static/img/afitcbtsim-logo.png">
+    <link rel="icon" href="../favicon.ico" type="image/x-icon">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../static/main.css">
+    <style>
+        .admin-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 1.25rem; margin-bottom: 2rem; }
+        .admin-grid .stat-card { padding: 1.25rem; }
+        .action-badge { display: inline-block; padding: 0.3rem 0.7rem; border-radius: 6px; font-size:0.78rem; font-weight:700; cursor:pointer; border:none; font-family:'Poppins',sans-serif; transition: all 0.2s; }
+        .action-badge.danger { background:#fef2f2; color:#ef4444; }
+        .action-badge.danger:hover { background:#ef4444; color:white; }
+        .action-badge.promote { background:#eff6ff; color:#2563eb; }
+        .action-badge.promote:hover { background:#2563eb; color:white; }
+        @media(max-width:900px){ .admin-grid{ grid-template-columns:1fr 1fr; } }
+        @media(max-width:600px){ .admin-grid{ grid-template-columns:1fr; } }
+    </style>
+</head>
+<body class="dashboard-body">
+
+<div class="sidebar-overlay" id="mobile-overlay" onclick="toggleSidebar()"></div>
+<aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <svg width="36" height="36" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style="border-radius:8px;flex-shrink:0;">
+            <rect width="100" height="100" rx="22" fill="url(#lg-a)"/>
+            <path d="M50 20 L22 75 H36 L43 60 H57 L64 75 H78 L50 20 Z" fill="#ffffff"/>
+            <path d="M32 54 L45 67 L75 32" stroke="#38bdf8" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+            <defs><linearGradient id="lg-a" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse"><stop stop-color="#0f172a"/><stop offset="1" stop-color="#1d4ed8"/></linearGradient></defs>
+        </svg>
+        <span>ADMIN PANEL</span>
+    </div>
+    <ul class="sidebar-nav">
+        <li class="active"><a href="index.html"><svg style="width:20px;margin-right:12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>Overview</a></li>
+        <li><a href="../dashboard/"><svg style="width:20px;margin-right:12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>Back to App</a></li>
+    </ul>
+    <div class="sidebar-footer">
+        <button class="logout-btn-sidebar" onclick="logout()">Log Out</button>
+    </div>
+</aside>
+
+<div class="main-wrapper">
+    <header class="top-header">
+        <button class="mobile-menu-btn" onclick="toggleSidebar()">
+            <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>
+        </button>
+        <div style="display:flex;align-items:center;gap:1rem;">
+            <span style="background:#fef3c7;color:#d97706;font-size:0.78rem;font-weight:700;padding:0.3rem 0.8rem;border-radius:99px;">ADMIN</span>
+            <div class="avatar" id="user-avatar">A</div>
+        </div>
+    </header>
+
+    <main class="dashboard-content">
+
+        <div style="margin-bottom:2rem;">
+            <h1 style="font-size:1.8rem;font-weight:800;color:#0f172a;">Admin Overview</h1>
+            <p style="color:#64748b;">Platform-wide statistics and user management.</p>
+        </div>
+
+        <div class="admin-grid">
+            <div class="stat-card">
+                <div class="stat-icon blue"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:28px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg></div>
+                <div class="stat-info"><h4>Total Users</h4><div class="stat-val" id="stat-users">—</div></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon green"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:28px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg></div>
+                <div class="stat-info"><h4>Total Exams</h4><div class="stat-val" id="stat-exams">—</div></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon purple"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:28px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg></div>
+                <div class="stat-info"><h4>Avg Score</h4><div class="stat-val" id="stat-avg">—</div></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background:#fef3c7;color:#d97706;"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:28px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
+                <div class="stat-info"><h4>Active Today</h4><div class="stat-val" id="stat-today">—</div></div>
+            </div>
+        </div>
+
+        <div class="admin-table-card">
+            <div class="admin-table-header">
+                <h3>All Registered Users</h3>
+                <input type="text" class="search-input" id="search-input" placeholder="Search by name or email…" oninput="filterUsers()">
+            </div>
+            <div style="overflow-x:auto;max-height:600px;overflow-y:auto;">
+                <table class="data-table" style="white-space:nowrap;">
+                    <thead>
+                        <tr>
+                            <th style="position:sticky;top:0;background:#f8fafc;z-index:10;">Name</th>
+                            <th style="position:sticky;top:0;background:#f8fafc;z-index:10;">Email</th>
+                            <th style="position:sticky;top:0;background:#f8fafc;z-index:10;">JAMB</th>
+                            <th style="position:sticky;top:0;background:#f8fafc;z-index:10;">Course</th>
+                            <th style="position:sticky;top:0;background:#f8fafc;z-index:10;">Role</th>
+                            <th style="position:sticky;top:0;background:#f8fafc;z-index:10;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="users-tbody">
+                        <tr><td colspan="6" style="text-align:center;color:#94a3b8;padding:3rem;">Loading users…</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../static/app.js"></script>
+<script>
+let allUsers = [];
+
+document.addEventListener('DOMContentLoaded', async () => {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (!session) return window.location.href = '../login/';
+
+    const { data: me } = await supabaseClient.from('profiles').select('role,full_name').eq('id', session.user.id).single();
+    if (!me || me.role !== 'admin') {
+        alert('Access denied. Admins only.');
+        return window.location.href = '../dashboard/';
+    }
+
+    const parts = (me.full_name || 'Admin').split(' ');
+    document.getElementById('user-avatar').innerText = (parts[0][0] + (parts[1]?.[0] || '')).toUpperCase();
+
+    // Load stats
+    const { count: userCount } = await supabaseClient.from('profiles').select('*', { count: 'exact', head: true });
+    const { count: examCount } = await supabaseClient.from('results').select('*', { count: 'exact', head: true });
+    document.getElementById('stat-users').innerText = userCount ?? '—';
+    document.getElementById('stat-exams').innerText = examCount ?? '—';
+
+    const { data: avgData } = await supabaseClient.from('results').select('total_score');
+    if (avgData?.length) {
+        const avg = (avgData.reduce((s, r) => s + r.total_score, 0) / avgData.length).toFixed(1);
+        document.getElementById('stat-avg').innerText = avg + '/50';
+    }
+
+    const today = new Date().toISOString().split('T')[0];
+    const { count: todayCount } = await supabaseClient.from('results').select('*', { count: 'exact', head: true }).gte('submitted_at', today);
+    document.getElementById('stat-today').innerText = todayCount ?? '0';
+
+    // Load users
+    const { data: users } = await supabaseClient.from('profiles').select('id,full_name,role,jamb_score,course_applied').order('full_name');
+    const { data: authUsers } = await supabaseClient.auth.admin?.listUsers().catch(() => ({ data: null })) || {};
+
+    allUsers = users || [];
+    renderUsers(allUsers);
+});
+
+function renderUsers(users) {
+    const tbody = document.getElementById('users-tbody');
+    if (!users.length) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#94a3b8;padding:2rem;">No users found.</td></tr>';
+        return;
+    }
+    tbody.innerHTML = '';
+    users.forEach(u => {
+        const tr = document.createElement('tr');
+        const roleColor = u.role === 'admin' ? '#d97706' : '#64748b';
+        tr.innerHTML = `
+            <td style="font-weight:600;">${escHtml(u.full_name || '—')}</td>
+            <td style="font-size:0.88rem;color:#64748b;">${escHtml(u.id.substring(0,8))}…</td>
+            <td>${escHtml(String(u.jamb_score ?? '—'))}</td>
+            <td style="font-size:0.85rem;max-width:200px;overflow:hidden;text-overflow:ellipsis;">${escHtml(u.course_applied || '—')}</td>
+            <td><span style="font-size:0.78rem;font-weight:700;color:${roleColor};text-transform:uppercase;">${escHtml(u.role || 'user')}</span></td>
+            <td style="display:flex;gap:0.5rem;">
+                ${u.role !== 'admin'
+                    ? `<button class="action-badge promote" onclick="setRole('${escHtml(u.id)}','admin')">Make Admin</button>`
+                    : `<button class="action-badge danger" onclick="setRole('${escHtml(u.id)}','user')">Revoke Admin</button>`
+                }
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+function filterUsers() {
+    const q = document.getElementById('search-input').value.toLowerCase();
+    renderUsers(allUsers.filter(u =>
+        (u.full_name || '').toLowerCase().includes(q) ||
+        (u.course_applied || '').toLowerCase().includes(q)
+    ));
+}
+
+async function setRole(userId, role) {
+    if (!confirm(`Set this user's role to "${role}"?`)) return;
+    const { error } = await supabaseClient.from('profiles').update({ role }).eq('id', userId);
+    if (error) { alert('Error: ' + error.message); return; }
+    const i = allUsers.findIndex(u => u.id === userId);
+    if (i !== -1) allUsers[i].role = role;
+    renderUsers(allUsers);
+}
+</script>
+</body>
+</html>
