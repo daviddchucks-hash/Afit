@@ -1,537 +1,363 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>
-      Admin Command Center - AFIT CBT Simulator
-    </title>
-    <link rel="icon" type="image/svg+xml" href="../static/img/afitcbtsim-logo.svg" />
-    <link rel="icon" type="image/png" sizes="512x512" href="../static/img/afitcbtsim-logo.png" />
-    <link rel="icon" type="image/png" sizes="192x192" href="../static/img/afitcbtsim-logo1.png" />
-    <link rel="apple-touch-icon" href="../static/img/apple-touch-icon.png" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="../static/main.css" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js">
-    </script>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Admin Command Center — AFIT CBT Simulator</title>
+    <link rel="icon" type="image/svg+xml" href="../static/img/afitcbtsim-logo.svg">
+    <link rel="icon" type="image/png" sizes="512x512" href="../static/img/afitcbtsim-logo.png">
+    <link rel="icon" href="../favicon.ico" type="image/x-icon">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../static/main.css">
     <style>
-      body { background-color: #f8fafc; color: #0f172a; font-family: &#39;Poppins&#39;, sans-serif; margin: 0; padding: 0; }
-        
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        html, body { max-width: 100vw !important; overflow-x: hidden !important; }
+        *, *::before, *::after { box-sizing: border-box !important; }
 
-        #auth-loader {
-            position: fixed; inset: 0; background: #0f172a; z-index: 9999;
-            display: flex; flex-direction: column; justify-content: center; align-items: center; color: white;
-        }
+        .admin-card { background: white; border-radius: 16px; border: 1px solid #e2e8f0; padding: 2rem; margin-bottom: 1.5rem; }
+        .admin-card h3 { font-size: 1.05rem; font-weight: 700; color: #0f172a; margin: 0 0 1.5rem; display: flex; align-items: center; gap: 8px; }
 
-        #admin-dashboard { display: none; }
-        
-        .admin-nav {
-            height: 60px; background: white; display: flex; justify-content: space-between; align-items: center;
-            padding: 0 1rem; border-bottom: 1px solid #e2e8f0; position: sticky; top: 0; z-index: 100;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-        }
-        
-        .admin-nav-title { font-weight: 800; font-size: 1.1rem; color: #1e293b; display: flex; align-items: center; gap: 8px; }
-        
-        .admin-wrapper { max-width: 1400px; margin: 1.5rem auto; padding: 0 1rem; }
+        .user-table-wrap { overflow-x: auto; border-radius: 12px; border: 1px solid #e2e8f0; max-height: 520px; overflow-y: auto; }
+        .user-table { width: 100%; border-collapse: collapse; white-space: nowrap; }
+        .user-table th { background: #f8fafc; color: #64748b; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; padding: 0.9rem 1rem; text-align: left; position: sticky; top: 0; z-index: 5; }
+        .user-table td { padding: 0.9rem 1rem; border-bottom: 1px solid #f1f5f9; font-size: 0.88rem; color: #334155; vertical-align: middle; }
+        .user-table tr:hover td { background: #f8fafc; }
 
-        .header-actions {
-            display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 10px;
-        }
+        .pill { padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.75rem; font-weight: 700; display: inline-block; }
+        .pill-green  { background: #f0fdf4; color: #16a34a; }
+        .pill-orange { background: #fff7ed; color: #ea580c; }
+        .pill-blue   { background: #eff6ff; color: #2563eb; }
+        .pill-purple { background: #faf5ff; color: #7c3aed; }
+        .pill-gray   { background: #f1f5f9; color: #64748b; }
 
-        /* KPI CARDS */
-        .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
-        .kpi-card {
-            background: white; padding: 1.2rem; border-radius: 16px; border: 1px solid #e2e8f0;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); display: flex; flex-direction: column;
-            position: relative; overflow: hidden;
-        }
-        .kpi-card::before { content: &#39;&#39;; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: #cbd5e1; }
-        .kpi-card.blue::before { background: #2563eb; }
-        .kpi-card.green::before { background: #10b981; }
-        .kpi-card.purple::before { background: #8b5cf6; }
-        .kpi-card.orange::before { background: #f97316; }
+        .action-btn { padding: 0.3rem 0.75rem; border-radius: 6px; font-size: 0.75rem; font-weight: 700; cursor: pointer; border: none; font-family: 'Poppins', sans-serif; transition: all 0.15s; }
+        .action-btn.green  { background: #f0fdf4; color: #16a34a; }
+        .action-btn.green:hover  { background: #16a34a; color: white; }
+        .action-btn.blue   { background: #eff6ff; color: #2563eb; }
+        .action-btn.blue:hover   { background: #2563eb; color: white; }
+        .action-btn.red    { background: #fef2f2; color: #ef4444; }
+        .action-btn.red:hover    { background: #ef4444; color: white; }
+        .action-btn.orange { background: #fff7ed; color: #ea580c; }
+        .action-btn.orange:hover { background: #ea580c; color: white; }
+        .action-btns-cell  { display: flex; gap: 0.4rem; flex-wrap: wrap; }
 
-        .kpi-title { color: #64748b; font-size: 0.75rem; text-transform: uppercase; font-weight: 700; margin-bottom: 4px; }
-        .kpi-value { font-size: 1.8rem; font-weight: 800; color: #0f172a; line-height: 1; }
+        .filter-row { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1.5rem; align-items: center; }
+        .filter-inp { padding: 0.6rem 1rem; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.88rem; font-family: 'Poppins', sans-serif; outline: none; }
+        .filter-inp:focus { border-color: #2563eb; }
 
-        /* TABS */
-        .tabs-container { margin-bottom: 1rem; display: flex; gap: 8px; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; overflow-x: auto;}
-        .tab-btn {
-            background: transparent; border: none; padding: 0.6rem 1rem; font-family: &#39;Poppins&#39;; font-weight: 700;
-            font-size: 0.9rem; color: #64748b; cursor: pointer; border-radius: 6px; transition: all 0.2s; white-space: nowrap;
-        }
-        .tab-btn:hover { background: #f1f5f9; color: #0f172a; }
-        .tab-btn.active { background: #2563eb; color: white; }
+        .stats-row4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+        .mini-stat { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1.1rem 1.4rem; }
+        .mini-stat .val { font-size: 2rem; font-weight: 800; color: #0f172a; line-height: 1; }
+        .mini-stat .lbl { font-size: 0.75rem; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; }
 
-        /* DATA PANELS */
-        .data-panel {
-            background: white; padding: 1rem; border-radius: 16px; border: 1px solid #e2e8f0;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); display: none;
-        }
-        .data-panel.active { display: block; }
-        
-        .table-container { width: 100%; overflow-x: auto; max-height: 60vh; }
+        .search-users { width: 280px; }
 
-        /* DEMOGRAPHICS GRID */
-        .demo-grid {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem;
+        @media(max-width: 900px) {
+            .stats-row4 { grid-template-columns: 1fr 1fr; }
+            .dashboard-content { padding: 1rem !important; }
         }
-        .course-stat-card {
-            background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1rem;
-            display: flex; justify-content: space-between; align-items: center;
-        }
-        .course-name { font-weight: 600; color: #1e293b; font-size: 0.9rem; word-break: break-word; padding-right: 10px;}
-        .course-count { background: #dbeafe; color: #1e40af; padding: 0.4rem 0.8rem; border-radius: 20px; font-weight: 800; font-size: 0.9rem; flex-shrink: 0;}
-
-        /* BUTTONS */
-        .btn-action {
-            background: white; border: 1px solid #cbd5e1; padding: 0.6rem 1rem; border-radius: 8px; 
-            font-weight: 600; cursor: pointer; color: #1e293b; transition: all 0.2s; font-family: &#39;Poppins&#39;; font-size: 0.85rem;
-            display: flex; align-items: center; gap: 6px;
-        }
-        .btn-action:hover { background: #f1f5f9; }
-        .btn-primary { background: #2563eb; color: white; border: none; }
-        .btn-primary:hover { background: #1d4ed8; }
-        .btn-danger { background: #fef2f2; border: 1px solid #fecaca; color: #dc2626; }
-
-        /* TABLES */
-        .admin-table { width: 100%; border-collapse: collapse; text-align: left; }
-        .admin-table th { 
-            color: #64748b; font-size: 0.75rem; text-transform: uppercase; padding: 0.8rem 0.5rem; 
-            border-bottom: 2px solid #e2e8f0; position: sticky; top: 0; background: #f8fafc; z-index: 10;
-            font-weight: 700; white-space: nowrap;
-        }
-        .admin-table td { padding: 0.8rem 0.5rem; border-bottom: 1px solid #f1f5f9; font-weight: 500; color: #334155; font-size: 0.85rem; white-space: nowrap;}
-        
-        /* 🚀 HIDDEN CAPTURE AREA FOR IMAGE GENERATION */
-        #capture-area {
-            position: absolute; left: -9999px; top: 0; width: 600px;
-            background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
-            color: white; padding: 40px; border-radius: 20px; font-family: &#39;Poppins&#39;, sans-serif; box-sizing: border-box; z-index: -100;
-        }
-        .report-header { border-bottom: 2px solid rgba(255,255,255,0.1); padding-bottom: 20px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center;}
-        .report-title { margin: 0; font-size: 1.8rem; font-weight: 800; }
-        .report-date { background: rgba(255,255,255,0.1); padding: 5px 12px; border-radius: 6px; font-weight: 600; font-size: 0.9rem; display: inline-block;}
-        .report-total { margin-top: 8px; font-size: 0.85rem; color: #bae6fd; font-weight: 600; text-align: right;}
-        
-        .report-row { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05); padding: 15px 20px; border-radius: 12px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.1); }
-        .r-rank { font-size: 1.2rem; font-weight: 800; color: #93c5fd; width: 30px;}
-        .r-name { font-weight: 700; font-size: 1.1rem; flex-grow: 1; margin: 0 15px;}
-        .r-course { font-size: 0.85rem; color: #cbd5e1; font-weight: 500; display: block;}
-        .r-score { background: #2563eb; padding: 8px 15px; border-radius: 8px; font-weight: 800; font-size: 1.2rem;}
-
-        /* MOBILE ADJUSTMENTS */
-        @media (max-width: 600px) {
-            .header-actions { flex-direction: column; align-items: stretch; }
-            .btn-action { justify-content: center; }
+        @media(max-width: 600px) {
+            .stats-row4 { grid-template-columns: 1fr; }
+            .search-users { width: 100%; }
         }
     </style>
-  </head>
-  <body>
-    <div id="auth-loader">
-      <svg class="animate-spin" style="width: 40px; height: 40px; color: #38bdf8; margin-bottom: 15px;" fill="none" viewBox="0 0 24 24">
-        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
-        </circle>
-        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-        </path>
-      </svg>
-      <h3 style="margin:0; font-size: 1.1rem;">
-        Verifying Clearance...
-      </h3>
+</head>
+<body class="dashboard-body">
+
+<div class="sidebar-overlay" id="mobile-overlay" onclick="toggleSidebar()"></div>
+
+<aside class="sidebar" id="sidebar">
+    <div class="sidebar-header" style="display:flex;align-items:center;gap:12px;padding:1rem 0;">
+        <svg width="36" height="36" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style="border-radius:8px;flex-shrink:0;">
+            <rect width="100" height="100" rx="22" fill="url(#lg-admin)"/>
+            <path d="M50 20 L22 75 H36 L43 60 H57 L64 75 H78 L50 20 Z" fill="#ffffff"/>
+            <path d="M32 54 L45 67 L75 32" stroke="#38bdf8" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+            <defs><linearGradient id="lg-admin" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse"><stop stop-color="#0f172a"/><stop offset="1" stop-color="#1d4ed8"/></linearGradient></defs>
+        </svg>
+        <span style="font-weight:800;font-size:1rem;color:#1e293b;letter-spacing:-0.5px;white-space:nowrap;">CMD CENTER</span>
     </div>
-    <div id="capture-area">
-      <div class="report-header">
-        <div>
-          <h2 class="report-title">
-            Daily Top Scorers
-          </h2>
-          <p style="margin: 0; color: #93c5fd; font-size: 0.95rem;">
-            AFIT CBT Simulator
-          </p>
-        </div>
-        <div style="text-align: right;">
-          <div class="report-date" id="img-date">
-            --
-          </div>
-          <div class="report-total" id="img-total-exams">
-            0 Exams Taken Today
-          </div>
-        </div>
-      </div>
-      <div id="img-list">
-      </div>
-      <div style="text-align: center; margin-top: 30px; font-size: 0.85rem; color: #94a3b8; font-weight: 500; text-transform: uppercase; letter-spacing: 1px;">
-        Powered by brightsitedev
-      </div>
+    <ul class="sidebar-nav">
+        <li class="active"><a href="index.html"><svg style="width:20px;margin-right:12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"/></svg>Command Center</a></li>
+        <li><a href="../admin-staging/index.html"><svg style="width:20px;margin-right:12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>Question Staging</a></li>
+        <li><a href="../dashboard/index.html"><svg style="width:20px;margin-right:12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>Back to App</a></li>
+    </ul>
+    <div class="sidebar-footer">
+        <button class="logout-btn-sidebar" onclick="logout()">Log Out</button>
     </div>
-    <div id="admin-dashboard">
-      <nav class="admin-nav">
-        <div class="admin-nav-title">
-          <svg width="24" height="24" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect width="100" height="100" rx="22" fill="#2563eb">
-            </rect>
-            <path d="M50 20 L22 75 H36 L43 60 H57 L64 75 H78 L50 20 Z" fill="#ffffff">
-            </path>
-          </svg>
-          ADMIN PANEL
-        </div>
-        <button onclick="adminLogout()" class="btn-action btn-danger">
-          Disconnect
+</aside>
+
+<div class="main-wrapper">
+    <header class="top-header">
+        <button class="mobile-menu-btn" onclick="toggleSidebar()">
+            <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>
         </button>
-      </nav>
-      <div class="admin-wrapper">
-        <div class="header-actions">
-          <div>
-            <h1 style="margin: 0; font-size: 1.5rem; color: #0f172a;">
-              Live Telemetry
-            </h1>
-          </div>
-          <div style="display: flex; gap: 10px;">
-            <button onclick="fetchAdminData()" class="btn-action">
-              🔄 Refresh
-            </button>
-            <button onclick="downloadDailyReport()" class="btn-action btn-primary" id="dl-btn">
-              📸 Download Daily Report
-            </button>
-          </div>
+        <div style="display:flex;align-items:center;gap:0.75rem;">
+            <span style="background:#fef2f2;color:#ef4444;font-size:0.75rem;font-weight:700;padding:0.3rem 0.8rem;border-radius:99px;letter-spacing:0.5px;">SUPER ADMIN</span>
+            <div class="avatar" id="user-avatar">A</div>
         </div>
-        <div class="kpi-grid">
-          <div class="kpi-card blue">
-            <span class="kpi-title">            Total Users
-</span>
-            <span class="kpi-value" id="kpi-users">            0
-</span>
-          </div>
-          <div class="kpi-card purple">
-            <span class="kpi-title">            Exams Taken (All Time)
-</span>
-            <span class="kpi-value" id="kpi-exams">            0
-</span>
-          </div>
-          <div class="kpi-card orange">
-            <span class="kpi-title">            Exams Taken Today
-</span>
-            <span class="kpi-value" id="kpi-today">            0
-</span>
-          </div>
-          <div class="kpi-card green">
-            <span class="kpi-title">            Premium Users
-</span>
-            <span class="kpi-value" id="kpi-premium">            0
-</span>
-          </div>
+    </header>
+
+    <main class="dashboard-content">
+        <div style="margin-bottom:1.5rem;">
+            <h1 style="font-size:1.8rem;font-weight:800;color:#0f172a;letter-spacing:-0.5px;">Command Center</h1>
+            <p style="color:#64748b;">Manage all users, payments, and system flags from one place.</p>
         </div>
-        <div class="tabs-container">
-          <button class="tab-btn active" onclick="switchTab(&#39;demographics&#39;)">
-            Aspirant Demographics
-          </button>
-          <button class="tab-btn" onclick="switchTab(&#39;results&#39;)">
-            Exam Results Log
-          </button>
+
+        <div class="stats-row4" id="admin-stats">
+            <div class="mini-stat"><div class="val" id="s-users">—</div><div class="lbl">Total Users</div></div>
+            <div class="mini-stat"><div class="val" id="s-paid" style="color:#16a34a;">—</div><div class="lbl">Premium Users</div></div>
+            <div class="mini-stat"><div class="val" id="s-exams">—</div><div class="lbl">Exams Taken</div></div>
+            <div class="mini-stat"><div class="val" id="s-today">—</div><div class="lbl">Signups Today</div></div>
         </div>
-        <div id="tab-demographics" class="data-panel active">
-          <div class="demo-grid" id="course-body">
-            <div style="grid-column: 1 / -1; text-align: center; color: #94a3b8; padding: 2rem;">
-              Loading data...
+
+        <!-- USER MANAGEMENT -->
+        <div class="admin-card">
+            <h3>
+                <svg style="width:20px;color:#2563eb;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                User Management
+            </h3>
+
+            <div class="filter-row">
+                <input type="text" class="filter-inp search-users" id="search-users" placeholder="Search name or email…" oninput="filterUsers()">
+                <select class="filter-inp" id="filter-plan" onchange="filterUsers()">
+                    <option value="">All Plans</option>
+                    <option value="paid">Premium</option>
+                    <option value="free">Free</option>
+                </select>
+                <select class="filter-inp" id="filter-role" onchange="filterUsers()">
+                    <option value="">All Roles</option>
+                    <option value="admin">Admin</option>
+                    <option value="jnr-admin">Jnr Admin</option>
+                    <option value="user">User</option>
+                </select>
+                <button onclick="loadUsers()" style="padding:0.6rem 1rem;background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe;border-radius:8px;font-weight:600;cursor:pointer;font-family:'Poppins',sans-serif;font-size:0.88rem;">↻ Refresh</button>
             </div>
-          </div>
+
+            <div class="user-table-wrap">
+                <table class="user-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Phone</th>
+                            <th>Program</th>
+                            <th>Course</th>
+                            <th>JAMB</th>
+                            <th>State</th>
+                            <th>Plan</th>
+                            <th>Role</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="users-tbody">
+                        <tr><td colspan="9" style="text-align:center;color:#94a3b8;padding:3rem;">Loading users…</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
-        <div id="tab-results" class="data-panel">
-          <div class="table-container">
-            <table class="admin-table">
-              <thead>
-                <tr>
-                  <th>
-                    Aspirant
-                  </th>
-                  <th>
-                    Total Score
-                  </th>
-                  <th>
-                    ENG
-                  </th>
-                  <th>
-                    MTH
-                  </th>
-                  <th>
-                    PHY
-                  </th>
-                  <th>
-                    CHM
-                  </th>
-                  <th>
-                    GNS
-                  </th>
-                  <th>
-                    ECO
-                  </th>
-                  <th>
-                    LIT
-                  </th>
-                  <th>
-                    GOV
-                  </th>
-                  <th>
-                    COM
-                  </th>
-                  <th>
-                    Time Submitted
-                  </th>
-                </tr>
-              </thead>
-              <tbody id="results-body">
-                <tr>
-                  <td colspan="12" style="text-align: center; color: #94a3b8; padding: 2rem;">
-                    Loading data...
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+
+        <!-- RECENT EXAM RESULTS -->
+        <div class="admin-card">
+            <h3>
+                <svg style="width:20px;color:#ea580c;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+                Recent Exam Results (Platform-wide)
+            </h3>
+            <div class="user-table-wrap">
+                <table class="user-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Student Name</th>
+                            <th>ENG</th>
+                            <th>GNS</th>
+                            <th>MTH</th>
+                            <th>PHY/ECO/LIT</th>
+                            <th>CHM/COM/GOV</th>
+                            <th>Post-UTME</th>
+                        </tr>
+                    </thead>
+                    <tbody id="results-tbody">
+                        <tr><td colspan="8" style="text-align:center;color:#94a3b8;padding:3rem;">Loading results…</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
-      </div>
-    </div>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
-    </script>
-    <script src="../static/app.js">
-    </script>
-    <script>
-      // 🚀 ADMIN FAILSAFE
-        if (typeof supabaseClient === &#39;undefined&#39;) {
-            const supabaseUrl = &#39;PASTE_YOUR_SUPABASE_URL_HERE&#39;;
-            const supabaseKey = &#39;PASTE_YOUR_SUPABASE_ANON_KEY_HERE&#39;;
-            window.supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+    </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../static/app.js"></script>
+<script>
+let allUsers = [];
+let profilesMap = {};
+
+document.addEventListener('DOMContentLoaded', async () => {
+    document.getElementById('user-avatar').textContent = 'A';
+    await loadUsers();
+    await loadRecentResults();
+});
+
+async function loadUsers() {
+    const { data, error } = await supabaseClient.from('profiles').select('*').order('full_name', { ascending: true });
+    if (error || !data) {
+        document.getElementById('users-tbody').innerHTML = '<tr><td colspan="9" style="text-align:center;color:#ef4444;padding:2rem;">Error loading users: ' + (error?.message || 'Unknown') + '</td></tr>';
+        return;
+    }
+    allUsers = data;
+    data.forEach(u => profilesMap[u.id] = u);
+
+    // Stats
+    document.getElementById('s-users').textContent = data.length;
+    document.getElementById('s-paid').textContent  = data.filter(u => u.has_paid).length;
+    const today = new Date().toISOString().substring(0, 10);
+    document.getElementById('s-today').textContent = data.filter(u => (u.created_at || '').startsWith(today)).length;
+
+    filterUsers();
+}
+
+function filterUsers() {
+    const search = document.getElementById('search-users').value.toLowerCase();
+    const plan   = document.getElementById('filter-plan').value;
+    const role   = document.getElementById('filter-role').value;
+    const filtered = allUsers.filter(u => {
+        const name  = (u.full_name || '').toLowerCase();
+        const planOk = !plan || (plan === 'paid' ? !!u.has_paid : !u.has_paid);
+        const roleOk = !role || (role === 'user' ? !u.role : u.role === role);
+        return planOk && roleOk && (!search || name.includes(search));
+    });
+    renderUsers(filtered);
+}
+
+function renderUsers(users) {
+    const tbody = document.getElementById('users-tbody');
+    if (!users.length) {
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:#94a3b8;padding:2rem;">No users match your filter.</td></tr>';
+        return;
+    }
+    tbody.innerHTML = '';
+    users.forEach(u => {
+        const tr = document.createElement('tr');
+        
+        // All cells use textContent — safe against XSS
+        const mkTd = (text, style) => { const td = document.createElement('td'); td.textContent = text || '—'; if (style) td.style.cssText = style; return td; };
+
+        const planPill = document.createElement('span');
+        planPill.className = 'pill ' + (u.has_paid ? 'pill-green' : 'pill-gray');
+        planPill.textContent = u.has_paid ? 'Premium' : 'Free';
+        const tdPlan = document.createElement('td'); tdPlan.appendChild(planPill);
+
+        const rolePill = document.createElement('span');
+        rolePill.className = 'pill ' + (u.role === 'admin' ? 'pill-purple' : u.role === 'jnr-admin' ? 'pill-blue' : 'pill-gray');
+        rolePill.textContent = u.role === 'admin' ? 'Super Admin' : u.role === 'jnr-admin' ? 'Jnr Admin' : 'User';
+        const tdRole = document.createElement('td'); tdRole.appendChild(rolePill);
+
+        const tdActs = document.createElement('td');
+        const actsDiv = document.createElement('div'); actsDiv.className = 'action-btns-cell';
+
+        if (!u.has_paid) {
+            const btn = document.createElement('button');
+            btn.className = 'action-btn green'; btn.textContent = 'Grant Premium';
+            btn.onclick = () => grantPremium(u.id);
+            actsDiv.appendChild(btn);
+        } else {
+            const btn = document.createElement('button');
+            btn.className = 'action-btn orange'; btn.textContent = 'Revoke Premium';
+            btn.onclick = () => revokePremium(u.id);
+            actsDiv.appendChild(btn);
         }
 
-        // Global variables for image generation
-        let todayTopScorers = [];
-
-        document.addEventListener(&#34;DOMContentLoaded&#34;, async () =&gt; {
-            const { data: { session } } = await supabaseClient.auth.getSession();
-            
-            if (!session) {
-                window.location.href = &#39;../login/index.html?mode=admin&#39;;
-                return;
-            }
-
-            const { data: profile } = await supabaseClient.from(&#39;profiles&#39;).select(&#39;role&#39;).eq(&#39;id&#39;, session.user.id).single();
-            
-            if (!profile || profile.role !== &#39;admin&#39;) {
-                alert(&#34;SECURITY LOCKOUT: Your account does not have administrative privileges.&#34;);
-                window.location.href = &#39;../dashboard/index.html&#39;;
-                return;
-            }
-
-            document.getElementById(&#39;auth-loader&#39;).style.display = &#39;none&#39;;
-            document.getElementById(&#39;admin-dashboard&#39;).style.display = &#39;block&#39;;
-            
-            // Set Date for Image
-            document.getElementById(&#39;img-date&#39;).innerText = new Date().toLocaleDateString(&#39;en-US&#39;, { weekday: &#39;short&#39;, month: &#39;short&#39;, day: &#39;numeric&#39; });
-            
-            fetchAdminData();
-        });
-
-        function switchTab(tabName) {
-            document.querySelectorAll(&#39;.tab-btn&#39;).forEach(btn =&gt; btn.classList.remove(&#39;active&#39;));
-            document.querySelectorAll(&#39;.data-panel&#39;).forEach(panel =&gt; panel.classList.remove(&#39;active&#39;));
-            
-            event.target.classList.add(&#39;active&#39;);
-            document.getElementById(`tab-${tabName}`).classList.add(&#39;active&#39;);
+        if (!u.role) {
+            const btn = document.createElement('button');
+            btn.className = 'action-btn blue'; btn.textContent = 'Make Jnr Admin';
+            btn.onclick = () => setRole(u.id, 'jnr-admin');
+            actsDiv.appendChild(btn);
         }
-
-        async function fetchAdminData() {
-            try {
-                // --- 1. CALCULATE EXACT KPIs (Bypassing 1000 Limit) ---
-                const pTotalUsers = supabaseClient.from(&#39;profiles&#39;).select(&#39;*&#39;, { count: &#39;exact&#39;, head: true });
-                const pPremiumUsers = supabaseClient.from(&#39;profiles&#39;).select(&#39;*&#39;, { count: &#39;exact&#39;, head: true }).eq(&#39;has_paid&#39;, true);
-                const pTotalExams = supabaseClient.from(&#39;results&#39;).select(&#39;*&#39;, { count: &#39;exact&#39;, head: true });
-
-                const startOfDay = new Date();
-                startOfDay.setHours(0, 0, 0, 0);
-                const pTodayExams = supabaseClient.from(&#39;results&#39;)
-                    .select(&#39;*, profiles(full_name, course_applied)&#39;)
-                    .gte(&#39;submitted_at&#39;, startOfDay.toISOString());
-
-                // 🚀 FIX: Fetching ONLY the 100 most recent results to keep table fast!
-                const pRecentResults = supabaseClient.from(&#39;results&#39;)
-                    .select(&#39;*, profiles(full_name, course_applied)&#39;)
-                    .order(&#39;submitted_at&#39;, { ascending: false })
-                    .limit(100); 
-
-                // Note: Fetching course applied for demographics calculation
-                const pDemographics = supabaseClient.from(&#39;profiles&#39;).select(&#39;course_applied&#39;);
-
-                // Run all queries simultaneously for extreme speed
-                const [
-                    { count: totalUsers }, 
-                    { count: premiumUsers }, 
-                    { count: totalExams }, 
-                    { data: todayResults },
-                    { data: recentResults },
-                    { data: profiles }
-                ] = await Promise.all([pTotalUsers, pPremiumUsers, pTotalExams, pTodayExams, pRecentResults, pDemographics]);
-
-                const examsToday = todayResults ? todayResults.length : 0;
-
-                // Inject KPI Values
-                document.getElementById(&#39;kpi-users&#39;).innerText = totalUsers || 0;
-                document.getElementById(&#39;kpi-premium&#39;).innerText = premiumUsers || 0;
-                document.getElementById(&#39;kpi-exams&#39;).innerText = totalExams || 0;
-                document.getElementById(&#39;kpi-today&#39;).innerText = examsToday;
-                
-                document.getElementById(&#39;img-total-exams&#39;).innerText = `${examsToday} Exams Taken Today`;
-
-                // Prepare Top 5 Scorers for Image Generation (from today&#39;s results)
-                todayTopScorers = [];
-                if (todayResults &amp;&amp; todayResults.length &gt; 0) {
-                    const sortedToday = [...todayResults].sort((a, b) =&gt; b.total_score - a.total_score);
-                    todayTopScorers = sortedToday.slice(0, 5);
-                }
-
-                // --- 2. POPULATE DEMOGRAPHICS (Course Grouping) ---
-                const courseCounts = {};
-                if (profiles) {
-                    profiles.forEach(p =&gt; {
-                        if (p.course_applied) {
-                            // Clean up the name (remove brackets if any)
-                            const cleanName = p.course_applied.replace(/\[.*?\]/g, &#39;&#39;).trim();
-                            courseCounts[cleanName] = (courseCounts[cleanName] || 0) + 1;
-                        }
-                    });
-                }
-
-                const courseBody = document.getElementById(&#39;course-body&#39;);
-                courseBody.innerHTML = &#39;&#39;;
-                
-                const courseArray = Object.keys(courseCounts).map(key =&gt; ({ name: key, count: courseCounts[key] }));
-                courseArray.sort((a, b) =&gt; b.count - a.count);
-
-                if (courseArray.length === 0) {
-                    courseBody.innerHTML = &#39;&lt;div style=&#34;grid-column: 1 / -1; text-align: center; color: #94a3b8; padding: 2rem;&#34;&gt;No demographic data available.&lt;/div&gt;&#39;;
-                } else {
-                    courseArray.forEach(course =&gt; {
-                        courseBody.innerHTML += `
-                            &lt;div class=&#34;course-stat-card&#34;&gt;
-                                &lt;span class=&#34;course-name&#34;&gt;${course.name}&lt;/span&gt;
-                                &lt;span class=&#34;course-count&#34;&gt;${course.count} Candidates&lt;/span&gt;
-                            &lt;/div&gt;
-                        `;
-                    });
-                }
-
-                // --- 3. POPULATE RESULTS TABLE (Capped at 100) ---
-                const rBody = document.getElementById(&#39;results-body&#39;);
-                rBody.innerHTML = &#39;&#39;;
-                
-                if (!recentResults || recentResults.length === 0) {
-                    rBody.innerHTML = &#39;&lt;tr&gt;&lt;td colspan=&#34;12&#34; style=&#34;text-align: center; color: #94a3b8; padding: 2rem;&#34;&gt;No exams taken yet.&lt;/td&gt;&lt;/tr&gt;&#39;;
-                } else {
-                    recentResults.forEach(r =&gt; {
-                        const dateObj = new Date(r.submitted_at);
-                        const timeStr = dateObj.toLocaleDateString(&#39;en-US&#39;, { month: &#39;short&#39;, day: &#39;numeric&#39; }) + &#39; &#39; + dateObj.toLocaleTimeString(&#39;en-US&#39;, { hour: &#39;2-digit&#39;, minute: &#39;2-digit&#39; });
-                        
-                        const aspirantName = r.profiles ? r.profiles.full_name : &#39;Unknown&#39;;
-                        const f = (score) =&gt; score &gt; 0 ? `&lt;span style=&#34;color:#0f172a; font-weight:700;&#34;&gt;${score}&lt;/span&gt;` : `&lt;span style=&#34;color:#cbd5e1;&#34;&gt;-&lt;/span&gt;`;
-
-                        rBody.innerHTML += `
-                            &lt;tr&gt;
-                                &lt;td style=&#34;font-weight: 700; color: #0f172a;&#34;&gt;${aspirantName}&lt;/td&gt;
-                                &lt;td&gt;&lt;span style=&#34;background: #eff6ff; color: #2563eb; padding: 4px 10px; border-radius: 8px; font-weight: 800;&#34;&gt;${r.total_score} / 50&lt;/span&gt;&lt;/td&gt;
-                                &lt;td&gt;${f(r.english_score)}&lt;/td&gt;
-                                &lt;td&gt;${f(r.math_score)}&lt;/td&gt;
-                                &lt;td&gt;${f(r.physics_score)}&lt;/td&gt;
-                                &lt;td&gt;${f(r.chemistry_score)}&lt;/td&gt;
-                                &lt;td&gt;${f(r.gns_score)}&lt;/td&gt;
-                                &lt;td&gt;${f(r.economics_score)}&lt;/td&gt;
-                                &lt;td&gt;${f(r.literature_score)}&lt;/td&gt;
-                                &lt;td&gt;${f(r.government_score)}&lt;/td&gt;
-                                &lt;td&gt;${f(r.commerce_score)}&lt;/td&gt;
-                                &lt;td style=&#34;color: #64748b; font-size: 0.75rem;&#34;&gt;${timeStr}&lt;/td&gt;
-                            &lt;/tr&gt;
-                        `;
-                    });
-                }
-
-            } catch (err) {
-                console.error(&#34;Dashboard Error:&#34;, err);
-                alert(&#34;Failed to load telemetry. Check console.&#34;);
-            }
+        if (u.role === 'jnr-admin') {
+            const btn = document.createElement('button');
+            btn.className = 'action-btn red'; btn.textContent = 'Remove Role';
+            btn.onclick = () => setRole(u.id, null);
+            actsDiv.appendChild(btn);
         }
+        tdActs.appendChild(actsDiv);
 
-        // 🚀 IMAGE GENERATOR ENGINE
-        function downloadDailyReport() {
-            const btn = document.getElementById(&#39;dl-btn&#39;);
-            const originalText = btn.innerHTML;
-            
-            if (todayTopScorers.length === 0) {
-                alert(&#34;No exams have been completed today to generate a report.&#34;);
-                return;
-            }
+        tr.append(
+            mkTd(u.full_name, 'font-weight:600;'),
+            mkTd(u.phone_number),
+            mkTd(u.program_type),
+            mkTd(u.course_applied),
+            mkTd(u.jamb_score),
+            mkTd(u.state_of_origin),
+            tdPlan, tdRole, tdActs
+        );
+        tbody.appendChild(tr);
+    });
+}
 
-            btn.innerHTML = `Generating Image...`;
-            btn.disabled = true;
+async function grantPremium(userId) {
+    if (!confirm('Grant Premium access to this user?')) return;
+    const { error } = await supabaseClient.from('profiles').update({ has_paid: true }).eq('id', userId);
+    if (error) { alert('Error: ' + error.message); return; }
+    const u = allUsers.find(u => u.id === userId);
+    if (u) u.has_paid = true;
+    filterUsers();
+}
 
-            const imgList = document.getElementById(&#39;img-list&#39;);
-            imgList.innerHTML = &#39;&#39;; // Clear previous
+async function revokePremium(userId) {
+    if (!confirm('Revoke Premium access from this user?')) return;
+    const { error } = await supabaseClient.from('profiles').update({ has_paid: false }).eq('id', userId);
+    if (error) { alert('Error: ' + error.message); return; }
+    const u = allUsers.find(u => u.id === userId);
+    if (u) u.has_paid = false;
+    filterUsers();
+}
 
-            // Build the HTML for the hidden capture area
-            todayTopScorers.forEach((r, index) =&gt; {
-                const fullName = r.profiles?.full_name || &#39;Unknown Aspirant&#39;;
-                const course = r.profiles?.course_applied ? r.profiles.course_applied.replace(/\[.*?\]/g, &#39;&#39;).trim() : &#39;General&#39;;
-                
-                let rankStr = `#${index + 1}`;
-                if(index === 0) rankStr = &#39;🥇&#39;;
-                if(index === 1) rankStr = &#39;🥈&#39;;
-                if(index === 2) rankStr = &#39;🥉&#39;;
+async function setRole(userId, role) {
+    const verb = role ? 'Assign role ' + role + ' to' : 'Remove admin role from';
+    if (!confirm(verb + ' this user?')) return;
+    const { error } = await supabaseClient.from('profiles').update({ role: role }).eq('id', userId);
+    if (error) { alert('Error: ' + error.message); return; }
+    const u = allUsers.find(u => u.id === userId);
+    if (u) u.role = role;
+    filterUsers();
+}
 
-                imgList.innerHTML += `
-                    &lt;div class=&#34;report-row&#34;&gt;
-                        &lt;span class=&#34;r-rank&#34;&gt;${rankStr}&lt;/span&gt;
-                        &lt;div class=&#34;r-name&#34;&gt;
-                            ${fullName}
-                            &lt;span class=&#34;r-course&#34;&gt;${course}&lt;/span&gt;
-                        &lt;/div&gt;
-                        &lt;span class=&#34;r-score&#34;&gt;${r.total_score}/50&lt;/span&gt;
-                    &lt;/div&gt;
-                `;
-            });
+async function loadRecentResults() {
+    const { data, error } = await supabaseClient
+        .from('results').select('*')
+        .order('submitted_at', { ascending: false }).limit(50);
 
-            const captureArea = document.getElementById(&#39;capture-area&#39;);
-            captureArea.style.left = &#39;0&#39;; // Bring to front momentarily
-            
-            // Allow DOM to update before capturing
-            setTimeout(() =&gt; {
-                html2canvas(captureArea, { scale: 2, backgroundColor: null }).then(canvas =&gt; {
-                    const link = document.createElement(&#39;a&#39;);
-                    const dateStr = new Date().toISOString().split(&#39;T&#39;)[0];
-                    link.download = `AFIT_Daily_Report_${dateStr}.png`;
-                    link.href = canvas.toDataURL(&#39;image/png&#39;);
-                    link.click();
-                    
-                    captureArea.style.left = &#39;-9999px&#39;; // Hide again
-                    btn.innerHTML = originalText;
-                    btn.disabled = false;
-                }).catch(err =&gt; {
-                    console.error(&#34;Image generation failed&#34;, err);
-                    captureArea.style.left = &#39;-9999px&#39;;
-                    btn.innerHTML = originalText;
-                    btn.disabled = false;
-                    alert(&#34;Could not generate image.&#34;);
-                });
-            }, 100);
-        }
+    const tbody = document.getElementById('results-tbody');
+    document.getElementById('s-exams').textContent = data?.length ?? '—';
 
-        async function adminLogout() {
-            await supabaseClient.auth.signOut();
-            window.location.href = &#39;../index.html&#39;;
-        }
-    </script>
-  </body>
+    if (error || !data?.length) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#94a3b8;padding:2rem;">No exam results found.</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = '';
+    data.forEach(r => {
+        const dateStr = new Date(r.submitted_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+        const profile  = profilesMap[r.student_id];
+        const name     = profile?.full_name || 'Unknown';
+
+        const col4 = r.physics_score ?? r.economics_score ?? r.literature_score ?? '—';
+        const col5 = r.chemistry_score ?? r.commerce_score ?? r.government_score ?? '—';
+
+        const tr = document.createElement('tr');
+        const mkTd = text => { const td = document.createElement('td'); td.textContent = String(text ?? '—'); return td; };
+
+        const tdName = document.createElement('td');
+        const b = document.createElement('strong'); b.textContent = name;
+        tdName.appendChild(b);
+
+        const scoreSpan = document.createElement('span'); scoreSpan.className = 'pill ' + (r.total_score >= 25 ? 'pill-green' : 'pill-orange');
+        scoreSpan.textContent = r.total_score + '/50';
+        const tdScore = document.createElement('td'); tdScore.appendChild(scoreSpan);
+
+        tr.append(mkTd(dateStr), tdName, mkTd(r.english_score), mkTd(r.gns_score), mkTd(r.math_score), mkTd(col4), mkTd(col5), tdScore);
+        tbody.appendChild(tr);
+    });
+}
+</script>
+</body>
 </html>

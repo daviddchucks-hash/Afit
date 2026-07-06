@@ -244,16 +244,6 @@
         }
 
         document.addEventListener("DOMContentLoaded", async () => {
-            const { data: { session } } = await supabaseClient.auth.getSession();
-            if (!session) return window.location.href = '../login/index.html?mode=admin';
-            
-            const { data: profile } = await supabaseClient.from('profiles').select('role').eq('id', session.user.id).single();
-            if (!profile || (profile.role !== 'admin' && profile.role !== 'jnr-admin')) {
-                alert("SECURITY LOCKOUT: Admin & Jnr-Admin only.");
-                window.location.href = '../dashboard/index.html';
-                return;
-            }
-
             if(localStorage.getItem('aloc_key')) document.getElementById('aloc-key').value = localStorage.getItem('aloc_key');
 
             loadGlobalStats();
