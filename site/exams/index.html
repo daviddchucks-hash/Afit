@@ -264,52 +264,12 @@
             // 🚀 STANDARD MONETIZATION LOGIC
             launchContainer.innerHTML = '';
 
-            if (profile.has_paid) {
-                planStatus.innerText = "Premium Plan: Unlimited Access";
-                launchContainer.innerHTML = `<button class="btn-launch" style="background: #16a34a;" onclick="window.location.href='../exam-room/'">Start Premium Exam</button>`;
-            } else {
-                if (actualTestsTaken >= 1) {
-                    planStatus.innerText = "Free Limit Reached (1/1)";
-                    launchContainer.innerHTML = `<button class="btn-launch" style="background: #ea580c;" onclick="initiatePayment('${session.user.email}', '${session.user.id}')">👑 Unlock Full Access (₦1,050)</button>`;
-                } else {
-                    planStatus.innerText = `Free Tier: ${1 - actualTestsTaken} Tests Remaining`;
-                    launchContainer.innerHTML = `
-                        <button class="btn-launch" style="background: #2563eb;" onclick="window.location.href='../exam-room/'">Start Free Test</button>
-                        <button class="btn-launch" style="background: transparent; border: 2px solid white; color: white;" onclick="initiatePayment('${session.user.email}', '${session.user.id}')">👑 Upgrade Now</button>
-                    `;
-                }
-            }
+            // All users have unlimited access
+            planStatus.innerText = "Full Access";
+            launchContainer.innerHTML = `<button class="btn-launch" style="background: #2563eb;" onclick="window.location.href='../exam-room/'">Start Exam →</button>`;
 
             fetchHistory(session.user.id);
         });
-
-        // PAYSTACK INLINE POPUP FUNCTION
-        function initiatePayment(email, userId) {
-            let handler = PaystackPop.setup({
-                key: 'pk_live_f1ca0bad0d6913267fb525e6c58cd2c447a1ae29', 
-                email: email,
-                amount: 1050 * 100, // 1050 Naira in kobo
-                currency: 'NGN',
-                ref: 'AFIT_' + Math.floor((Math.random() * 1000000000) + 1),
-                metadata: {
-                    custom_fields: [
-                        {
-                            display_name: "Student ID",
-                            variable_name: "student_id",
-                            value: userId
-                        }
-                    ]
-                },
-                callback: function(response) {
-                    alert('Payment successful! Verifying your account upgrade. The page will refresh momentarily.');
-                    setTimeout(() => {
-                        window.location.reload(); 
-                    }, 3000);
-                },
-                onClose: function() {
-                    alert('Payment process was cancelled.');
-                }
-            });
             handler.openIframe();
         }
 

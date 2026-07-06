@@ -287,11 +287,6 @@
             const { data: resultsData } = await supabaseClient.from('results').select('id').eq('student_id', session.user.id);
             const actualTestsTaken = resultsData ? resultsData.length : 0;
 
-            if (!profile.has_paid && actualTestsTaken >= 1) {
-                alert("SECURITY LOCK: You have exhausted your 1 free test. Please upgrade to Premium to continue.");
-                window.location.href = '../dashboard/index.html';
-                return; // Stop the exam room from loading
-            }
 
             // 🚀 BROWSER HISTORY TRAP
             history.pushState(null, null, location.href);
@@ -452,22 +447,11 @@
                 }
 
                 const fetchPromises = subjectsToFetch.map((subj, idx) => {
-                    if (userProfile.has_paid) {
-                        // PREMIUM TIER: True Randomization
-                        return supabaseClient.rpc('get_random_questions', { 
-                            subj_param: subj, 
-                            lim_param: limits[idx] 
-                        });
-                    } else {
-                        // 🚀 FREE TIER ANTI-ABUSE ALGORITHM
-                        // Always grabs the first exact X questions ordered by ID. 
-                        // It will NEVER randomize, so free users always get the exact same test.
-                        return supabaseClient.from('questions')
-                            .select('*')
-                            .ilike('subject', `%${subj}%`)
-                            .order('id', { ascending: true })
-                            .limit(limits[idx]);
-                    }
+                    // All users get true randomization
+                    return supabaseClient.rpc('get_random_questions', { 
+                        subj_param: subj, 
+                        lim_param: limits[idx] 
+                    });
                 });
 
                 const results = await Promise.all(fetchPromises);
@@ -483,13 +467,10 @@
                     return;
                 }
                 
-                // Only shuffle questions if they are a premium user
-                // Free users will see the exact same layout order every time.
-                if (userProfile.has_paid) {
-                    for (let i = allQuestions.length - 1; i > 0; i--) {
-                        const j = Math.floor(Math.random() * (i + 1));
-                        [allQuestions[i], allQuestions[j]] = [allQuestions[j], allQuestions[i]];
-                    }
+                // All users get shuffled questions
+                for (let i = allQuestions.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [allQuestions[i], allQuestions[j]] = [allQuestions[j], allQuestions[i]];
                 }
                 
                 questions = allQuestions;

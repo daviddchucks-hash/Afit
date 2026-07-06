@@ -265,38 +265,15 @@
             const statusText = document.getElementById('account-status');
             const actionContainer = document.getElementById('action-buttons-container');
 
-            // LAUNCH/MONETIZATION LOGIC (1 Free Test Max)
+            // All users have unlimited access — no paywall
             actionContainer.innerHTML = '';
-
-            if (profile.has_paid) {
-                statusText.innerText = 'Premium Access';
-                statusText.style.color = '#16a34a';
-                actionContainer.innerHTML = `
-                    <button onclick="window.location.href='../exam-room/index.html'" style="padding: 1rem 2rem; border-radius: 12px; font-weight: 700; border: none; cursor: pointer; background: #16a34a; color: white; font-size: 1rem; box-shadow: 0 10px 20px rgba(22, 163, 74, 0.3); transition: transform 0.2s;">
-                        Start Premium Exam →
-                    </button>
-                `;
-            } else {
-                if (actualTestsTaken >= 1) {
-                    statusText.innerText = 'Free Limit Reached';
-                    statusText.style.color = '#ea580c';
-                    actionContainer.innerHTML = `
-                        <button onclick="initiatePayment('${session.user.email}', '${session.user.id}')" style="padding: 1rem 2rem; border-radius: 12px; font-weight: 700; border: none; cursor: pointer; background: #ea580c; color: white; font-size: 1rem; box-shadow: 0 10px 20px rgba(234, 88, 12, 0.3); transition: transform 0.2s;">
-                            👑 Unlock Full Access (₦1,050)
-                        </button>
-                    `;
-                } else {
-                    statusText.innerText = `Free Tier (1 Left)`;
-                    actionContainer.innerHTML = `
-                        <button onclick="window.location.href='../exam-room/index.html'" style="padding: 1rem 2rem; border-radius: 12px; font-weight: 700; border: none; cursor: pointer; background: #2563eb; color: white; font-size: 1rem; box-shadow: 0 10px 20px rgba(37, 99, 235, 0.3); transition: transform 0.2s;">
-                            Start Free Test →
-                        </button>
-                        <button onclick="initiatePayment('${session.user.email}', '${session.user.id}')" style="padding: 1rem 2rem; border-radius: 12px; font-weight: 700; border: 2px solid #ea580c; cursor: pointer; background: white; color: #ea580c; font-size: 1rem; transition: background 0.3s;">
-                            👑 Upgrade Now
-                        </button>
-                    `;
-                }
-            }
+            statusText.innerText = 'Full Access';
+            statusText.style.color = '#16a34a';
+            actionContainer.innerHTML = `
+                <button onclick="window.location.href='../exam-room/index.html'" style="padding: 1rem 2rem; border-radius: 12px; font-weight: 700; border: none; cursor: pointer; background: #2563eb; color: white; font-size: 1rem; box-shadow: 0 10px 20px rgba(37, 99, 235, 0.3); transition: transform 0.2s;">
+                    Start Exam →
+                </button>
+            `;
 
             fetchUserHistory(session.user.id);
             fetchTodayLeaderboard(); 
