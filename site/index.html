@@ -3,186 +3,327 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AFIT CBT Simulator — Practice & Ace Your Post-UTME</title>
+
     <link rel="icon" type="image/svg+xml" href="static/img/afitcbtsim-logo.svg">
     <link rel="icon" type="image/png" sizes="512x512" href="static/img/afitcbtsim-logo.png">
     <link rel="icon" type="image/png" sizes="192x192" href="static/img/afitcbtsim-logo1.png">
     <link rel="apple-touch-icon" href="static/img/apple-touch-icon.png">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+
+    <title>AFIT CBT Simulator | Secure Your Admission - afitcbtsim</title>
+    <meta name="description" content="The ultimate Post-UTME mock examination platform for Air Force Institute of Technology (AFIT) aspirants. Practice with authentic past questions and secure your admission today.">
+    <meta name="keywords" content="AFIT, CBT Simulator, Post-UTME, Air Force Institute of Technology, Mock Exam, Past Questions, Brightsitedev, afitcbtsim">
+    <meta name="author" content="BrightSideDev">
+    <meta name="robots" content="index, follow">
+    <meta name="language" content="English">
+    
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="AFIT CBT Simulator | Secure Your Admission">
+    <meta property="og:description" content="Master the exact AFIT Post-UTME CBT environment. Practice with authentic past questions and track your readiness with advanced analytics.">
+    <meta property="og:image" content="static/img/logo.jpg">
+    <meta property="og:site_name" content="AFIT CBT Simulator">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
     <link rel="stylesheet" href="static/main.css">
+
     <style>
-        body { background: #0f172a; color: white; font-family: 'Poppins', sans-serif; margin: 0; padding: 0; }
-
-        .nav {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 1.2rem 2rem; border-bottom: 1px solid rgba(255,255,255,0.08);
-            position: sticky; top: 0; background: rgba(15,23,42,0.95);
-            backdrop-filter: blur(10px); z-index: 100;
+        /* PREMIUM "COMING SOON" TOAST NOTIFICATION */
+        .coming-soon-toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(150px);
+            background: #1e293b;
+            color: #f8fafc;
+            padding: 14px 28px;
+            border-radius: 50px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            border: 1px solid #334155;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
         }
-        .nav-logo { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 1.1rem; }
-        .nav-cta { padding: 0.7rem 1.5rem; background: #2563eb; color: white; border: none; border-radius: 10px; font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 0.9rem; cursor: pointer; text-decoration: none; display: inline-block; transition: all 0.2s; }
-        .nav-cta:hover { background: #1d4ed8; transform: translateY(-2px); }
-
-        .hero {
-            min-height: 90vh; display: flex; align-items: center; justify-content: center;
-            text-align: center; padding: 4rem 1.5rem;
-            background: radial-gradient(ellipse at center top, rgba(37,99,235,0.25) 0%, transparent 65%);
+        
+        .coming-soon-toast.show {
+            transform: translateX(-50%) translateY(0);
         }
-        .hero-content { max-width: 700px; }
-        .hero-badge {
-            display: inline-flex; align-items: center; gap: 8px;
-            background: rgba(37,99,235,0.15); border: 1px solid rgba(37,99,235,0.3);
-            padding: 0.4rem 1rem; border-radius: 20px; font-size: 0.85rem;
-            font-weight: 600; color: #93c5fd; margin-bottom: 1.5rem;
+
+        /* BRIGHTSITEDEV BRANDING HOVER */
+        .built-by-badge a:hover {
+            color: #bae6fd !important;
+            text-decoration: underline !important;
         }
-        .hero h1 { font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 800; line-height: 1.15; margin-bottom: 1.2rem; letter-spacing: -1px; }
-        .hero h1 span { color: #60a5fa; }
-        .hero p { font-size: 1.1rem; color: #94a3b8; font-weight: 500; line-height: 1.8; margin-bottom: 2.5rem; max-width: 520px; margin-left: auto; margin-right: auto; }
-        .hero-btns { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
-        .btn-primary-lg { padding: 1rem 2.2rem; background: #2563eb; color: white; border: none; border-radius: 12px; font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 1rem; cursor: pointer; transition: all 0.2s; text-decoration: none; display: inline-block; box-shadow: 0 10px 30px rgba(37,99,235,0.35); }
-        .btn-primary-lg:hover { background: #1d4ed8; transform: translateY(-3px); }
-        .btn-outline-lg { padding: 1rem 2.2rem; background: transparent; color: white; border: 2px solid rgba(255,255,255,0.2); border-radius: 12px; font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 1rem; cursor: pointer; transition: all 0.2s; text-decoration: none; display: inline-block; }
-        .btn-outline-lg:hover { border-color: white; background: rgba(255,255,255,0.05); }
 
-        .features { padding: 5rem 2rem; max-width: 1100px; margin: 0 auto; }
-        .features-title { text-align: center; margin-bottom: 3rem; }
-        .features-title h2 { font-size: 2rem; font-weight: 800; margin-bottom: 0.5rem; }
-        .features-title p { color: #94a3b8; font-size: 1rem; }
-        .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; }
-        .feature-card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; padding: 2rem; transition: all 0.2s; }
-        .feature-card:hover { background: rgba(255,255,255,0.07); transform: translateY(-4px); }
-        .feature-icon { width: 50px; height: 50px; border-radius: 14px; background: rgba(37,99,235,0.2); border: 1px solid rgba(37,99,235,0.3); display: flex; align-items: center; justify-content: center; margin-bottom: 1.2rem; font-size: 1.5rem; }
-        .feature-card h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem; }
-        .feature-card p { color: #94a3b8; font-size: 0.9rem; line-height: 1.7; }
-
-        .pricing { padding: 5rem 2rem; max-width: 800px; margin: 0 auto; text-align: center; }
-        .pricing h2 { font-size: 2rem; font-weight: 800; margin-bottom: 0.5rem; }
-        .pricing > p { color: #94a3b8; margin-bottom: 3rem; }
-        .pricing-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; text-align: left; }
-        .price-card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 2rem; }
-        .price-card.featured { background: rgba(37,99,235,0.15); border-color: rgba(37,99,235,0.4); }
-        .price-tag { font-size: 2rem; font-weight: 800; margin: 0.5rem 0; }
-        .price-tag span { font-size: 1rem; font-weight: 500; color: #94a3b8; }
-        .price-card h4 { font-size: 1rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0; }
-        .price-card ul { list-style: none; margin: 1.5rem 0; }
-        .price-card ul li { padding: 0.4rem 0; font-size: 0.9rem; color: #cbd5e1; display: flex; align-items: center; gap: 8px; }
-        .check { color: #34d399; }
-
-        .footer { text-align: center; padding: 2rem; border-top: 1px solid rgba(255,255,255,0.08); color: #64748b; font-size: 0.875rem; }
-
+        /* 🚀 LAUNCH COUNTDOWN STYLES (Fixed for Light Background) */
+        .countdown-container {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 2rem 0;
+        }
+        .countdown-box {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            padding: 15px 20px;
+            border-radius: 16px;
+            min-width: 85px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(37, 99, 235, 0.15); /* Soft blue glow */
+        }
+        .countdown-value {
+            display: block;
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #0f172a; /* High contrast dark text */
+            line-height: 1;
+            margin-bottom: 5px;
+        }
+        .countdown-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #2563eb; /* Vibrant blue */
+            font-weight: 700;
+        }
+        
         @media (max-width: 600px) {
-            .nav { padding: 1rem; }
-            .hero-btns { flex-direction: column; align-items: center; }
-            .btn-primary-lg, .btn-outline-lg { width: 100%; text-align: center; }
-            .pricing-cards { grid-template-columns: 1fr; }
+            .countdown-container { gap: 8px; }
+            .countdown-box { padding: 10px; min-width: 65px; }
+            .countdown-value { font-size: 1.8rem; }
+            .countdown-label { font-size: 0.65rem; }
         }
     </style>
 </head>
-<body>
+<body class="landing-body">
 
-    <nav class="nav">
-        <div class="nav-logo">
-            <svg width="32" height="32" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect width="100" height="100" rx="22" fill="url(#hero-grad)"/>
+    <div id="coming-soon-toast" class="coming-soon-toast">
+        <svg style="width: 20px; color: #38bdf8;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        <span>Platform launching Friday at 6:00 PM!</span>
+    </div>
+
+    <nav class="public-nav">
+       <div class="logo" style="display: flex; align-items: center;">
+            <svg width="42" height="42" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style="border-radius: 10px; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4); flex-shrink: 0;">
+                <rect width="100" height="100" rx="22" fill="url(#logo-grad)"/>
                 <path d="M50 20 L22 75 H36 L43 60 H57 L64 75 H78 L50 20 Z" fill="#ffffff"/>
+                <path d="M32 54 L45 67 L75 32" stroke="#38bdf8" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
                 <defs>
-                    <linearGradient id="hero-grad" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
+                    <linearGradient id="logo-grad" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
                         <stop stop-color="#0f172a"/>
                         <stop offset="1" stop-color="#1d4ed8"/>
                     </linearGradient>
                 </defs>
             </svg>
-            AFIT CBT SIM
+            <span style="font-weight: 800; color: #1e293b; margin-left: 12px; font-size: 1.2rem; letter-spacing: -0.5px;">AFIT CBT SIM</span>
         </div>
-        <a href="login/index.html" class="nav-cta">Login / Sign Up</a>
+        <div class="nav-buttons" id="nav-btn-container">
+            <a href="#" onclick="showComingSoon(event)" class="login-btn auth-link">Log In</a>
+            <a href="#" onclick="showComingSoon(event)" class="signup-btn auth-link">Start Practicing Free</a>
+        </div>
     </nav>
 
-    <section class="hero">
-        <div class="hero-content">
-            <div class="hero-badge">
-                <svg style="width:16px;height:16px;color:#60a5fa" fill="currentColor" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                Official AFIT Post-UTME Practice Platform
-            </div>
-            <h1>Ace Your AFIT<br><span>Post-UTME Exam</span></h1>
-            <p>The most realistic CBT simulator built specifically for AFIT aspirants. Practice with real exam conditions, beat the leaderboard, and walk in confident.</p>
-            <div class="hero-btns">
-                <a href="login/index.html" class="btn-primary-lg">Start Practicing Free →</a>
-                <a href="#features" class="btn-outline-lg">See How It Works</a>
-            </div>
-        </div>
-    </section>
+    <main>
+        <section class="hero-premium">
+            <div class="glow-blob top-left"></div>
+            <div class="glow-blob bottom-right"></div>
+            
+            <div class="hero-content">
+                <div class="badge">🔥 Updated for 2026 Admissions</div>
+                <h1>Secure Your AFIT Admission with <span>Absolute Certainty.</span></h1>
+                <p>Don't leave your future to chance. Master the exact Post-UTME CBT environment, practice with authentic past questions, and track your readiness with advanced analytics.</p>
+                
+                <div class="countdown-container" id="launch-countdown">
+                    <div class="countdown-box">
+                        <span class="countdown-value" id="cd-days">00</span>
+                        <span class="countdown-label">Days</span>
+                    </div>
+                    <div class="countdown-box">
+                        <span class="countdown-value" id="cd-hours">00</span>
+                        <span class="countdown-label">Hours</span>
+                    </div>
+                    <div class="countdown-box">
+                        <span class="countdown-value" id="cd-mins">00</span>
+                        <span class="countdown-label">Mins</span>
+                    </div>
+                    <div class="countdown-box">
+                        <span class="countdown-value" id="cd-secs">00</span>
+                        <span class="countdown-label">Secs</span>
+                    </div>
+                </div>
 
-    <section class="features" id="features">
-        <div class="features-title">
-            <h2>Everything You Need to Pass</h2>
-            <p>Built to simulate the real AFIT CBT experience — no shortcuts.</p>
-        </div>
-        <div class="features-grid">
-            <div class="feature-card">
-                <div class="feature-icon">⏱️</div>
-                <h3>Timed Exam Conditions</h3>
-                <p>40-minute countdown with 50 randomly shuffled questions. Auto-submits just like the real thing.</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon">🛡️</div>
-                <h3>Anti-Malpractice System</h3>
-                <p>Fullscreen enforcement with tab-switch strike detection. 3 strikes = auto-submission. Train like it's real.</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon">📊</div>
-                <h3>Detailed Score Breakdown</h3>
-                <p>Per-subject scores across English, Math, Physics, Chemistry, GNS and more — plus your calculated aggregate.</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon">🏆</div>
-                <h3>Live Leaderboard</h3>
-                <p>See where you rank against other aspirants today and all-time. The competition pushes you to improve.</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon">📱</div>
-                <h3>Works on Any Device</h3>
-                <p>Fully responsive — practice on your phone, tablet, or laptop. No app download required.</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon">✅</div>
-                <h3>Curated Question Bank</h3>
-                <p>Questions reviewed and staged by admins before going live. No garbage questions wasting your practice time.</p>
-            </div>
-        </div>
-    </section>
+                <div class="hero-actions">
+                    <a href="#" onclick="showComingSoon(event)" class="cta-btn-massive auth-link" id="hero-main-btn">Start Test Now!</a>
+                </div>
 
-    <section class="pricing" id="pricing">
-        <h2>Simple Pricing</h2>
-        <p>Start free, upgrade once — practice unlimited.</p>
-        <div class="pricing-cards">
-            <div class="price-card">
-                <h4>Free Tier</h4>
-                <div class="price-tag">₦0 <span>/ one-time</span></div>
-                <ul>
-                    <li><span class="check">✓</span> 1 full practice exam</li>
-                    <li><span class="check">✓</span> Score & subject breakdown</li>
-                    <li><span class="check">✓</span> Leaderboard access</li>
-                    <li><span class="check">✓</span> Aggregate calculator</li>
-                </ul>
+                <div class="social-proof">
+                    <div class="avatars">
+                        <div class="mini-avatar-img" style="background: #2d8eff;">S</div>
+                        <div class="mini-avatar-img" style="background: #10b981;">A</div>
+                        <div class="mini-avatar-img" style="background: #f59e0b;">J</div>
+                        <div class="mini-avatar-img" style="background: #8b5cf6;">E</div>
+                    </div>
+                    <span>Join <strong>100+</strong> smart aspirants practicing today.</span>
+                </div>
             </div>
-            <div class="price-card featured">
-                <h4>Premium Access</h4>
-                <div class="price-tag">₦1,050 <span>/ one-time</span></div>
-                <ul>
-                    <li><span class="check">✓</span> Unlimited practice exams</li>
-                    <li><span class="check">✓</span> All free tier features</li>
-                    <li><span class="check">✓</span> Full subject coverage</li>
-                    <li><span class="check">✓</span> Lifetime access — no recurring fees</li>
-                </ul>
-            </div>
-        </div>
-    </section>
+        </section>
 
-    <footer class="footer">
-        <p>Built by <strong>Brightsitedev</strong> for AFIT Post-UTME Aspirants. &copy; 2025 AFIT CBT Simulator.</p>
+        <section class="features-premium">
+            <div class="section-header">
+                <h2>Why Top Scorers Choose Us</h2>
+                <p>We built the ultimate driller to eliminate exam anxiety and boost your speed.</p>
+            </div>
+
+            <div class="features-grid">
+                <div class="premium-feature-card">
+                    <div class="feature-icon bg-blue">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                    </div>
+                    <h3>Exact Exam Simulation</h3>
+                    <p>Experience the pressure before the real day. Our interface perfectly mirrors the official AFIT CBT portal, complete with strict timers and full-screen enforcement.</p>
+                </div>
+
+                <div class="premium-feature-card">
+                    <div class="feature-icon bg-purple">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                    </div>
+                    <h3>Massive Question Bank</h3>
+                    <p>Gain unlimited access to thousands of standard questions across Mathematics, Physics, Chemistry, English, Literature, Government, Commerce, and Economics. No more guessing what might come out.</p>
+                </div>
+
+                <div class="premium-feature-card">
+                    <div class="feature-icon bg-green">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                    </div>
+                    <h3>Advanced Performance Analytics</h3>
+                    <p>Instantly identify your weak subjects. Our AI-driven dashboard breaks down your scores so you know exactly what to study next.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="bottom-cta">
+            <div class="cta-content">
+                <h2>Your Admission Won't Wait.</h2>
+                <p>Start your first mock exam right now in less than 30 seconds. No credit card required.</p>
+                <a href="#" onclick="showComingSoon(event)" class="cta-btn-light auth-link" id="footer-main-btn">Create Free Account</a>
+            </div>
+        </section>
+    </main>
+
+    <footer class="premium-footer" style="padding-bottom: 2rem;">
+        <div class="footer-logo" style="display: flex; align-items: center; justify-content: center; gap: 10px;">
+            <svg width="28" height="28" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style="border-radius: 6px;">
+                <rect width="100" height="100" rx="22" fill="url(#logo-grad-footer)"/>
+                <path d="M50 20 L22 75 H36 L43 60 H57 L64 75 H78 L50 20 Z" fill="#ffffff"/>
+                <path d="M32 54 L45 67 L75 32" stroke="#38bdf8" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+                <defs>
+                    <linearGradient id="logo-grad-footer" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
+                        <stop stop-color="#0f172a"/>
+                        <stop offset="1" stop-color="#1d4ed8"/>
+                    </linearGradient>
+                </defs>
+            </svg>
+            <span style="font-weight: 700; color: #1e293b;">AFIT CBT SIM</span>
+        </div>
+        <p>&copy; 2026 AFIT CBT Simulator. Engineered for Excellence.</p>
+        
+        <div class="built-by-badge" style="margin-top: 20px; font-size: 0.85rem; color: #94a3b8; display: flex; align-items: center; justify-content: center; gap: 8px;">
+            <svg style="width: 16px; color: #10b981;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+            Proudly built & powered by <a href="https://brightsitedev.tech" target="_blank" style="color: #38bdf8; text-decoration: none; font-weight: 600; transition: color 0.2s;">Brightsitedev</a>
+        </div>
     </footer>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="static/app.js" defer></script>
+    
+    <script>
+        // --- 🚀 LAUNCH COUNTDOWN ENGINE ---
+        // Target: June 26, 2026 at 18:00:00 WAT (WAT is UTC+1)
+        const launchDate = new Date("2026-06-26T18:00:00+01:00").getTime();
+
+        const timerInterval = setInterval(function() {
+            const now = new Date().getTime();
+            const distance = launchDate - now;
+
+            // Time calculations
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+            // Output the result
+            if (distance > 0) {
+                document.getElementById("cd-days").innerText = days < 10 ? '0' + days : days;
+                document.getElementById("cd-hours").innerText = hours < 10 ? '0' + hours : hours;
+                document.getElementById("cd-mins").innerText = minutes < 10 ? '0' + minutes : minutes;
+                document.getElementById("cd-secs").innerText = seconds < 10 ? '0' + seconds : seconds;
+            } else {
+                // IT IS LAUNCH TIME! 🚀
+                clearInterval(timerInterval);
+                
+                // Hide the countdown visually
+                const countdownElem = document.getElementById("launch-countdown");
+                if (countdownElem) countdownElem.style.display = "none";
+                
+                // UNLOCK ALL BUTTONS (Convert them from 'Coming Soon' to actual Login/Signup links)
+                document.querySelectorAll('.auth-link').forEach(link => {
+                    link.onclick = null; // Remove the toast pop-up
+                    if(link.classList.contains('login-btn')) {
+                        link.href = "login/index.html";
+                    } else {
+                        link.href = "login/index.html"; // Both point to auth portal
+                    }
+                });
+            }
+        }, 1000);
+
+        // --- TOAST NOTIFICATION LOGIC ---
+        function showComingSoon(e) {
+            if (e) e.preventDefault();
+            const toast = document.getElementById('coming-soon-toast');
+            toast.classList.add('show');
+            
+            // Hide after 3.5 seconds
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3500);
+        }
+
+        // --- SESSION OVERRIDE LOGIC ---
+        // (Keeps the buttons active if you, the admin, are already logged in locally)
+        window.addEventListener('DOMContentLoaded', async () => {
+            if (typeof supabaseClient === 'undefined') return;
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            
+            if (session) {
+                // Hide countdown if logged in
+                document.getElementById("launch-countdown").style.display = "none";
+
+                // Change Nav
+                document.getElementById('nav-btn-container').innerHTML = `<a href="dashboard/index.html" class="signup-btn" style="background-color: #10b981;">Go to Dashboard →</a>`;
+                
+                // Change Hero Button
+                const heroBtn = document.getElementById('hero-main-btn');
+                if(heroBtn) {
+                    heroBtn.href = "dashboard/index.html";
+                    heroBtn.onclick = null; // Remove the "Coming Soon" block
+                    heroBtn.innerText = "Continue Practicing";
+                }
+
+                // Change Footer Button
+                const footBtn = document.getElementById('footer-main-btn');
+                if(footBtn) {
+                    footBtn.href = "dashboard/index.html";
+                    footBtn.onclick = null; // Remove the "Coming Soon" block
+                    footBtn.innerText = "Go to Dashboard";
+                }
+            }
+        });
+    </script>
 </body>
 </html>

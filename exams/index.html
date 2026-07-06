@@ -60,7 +60,6 @@
             background: #2563eb; color: white; border: none; padding: 1.2rem 2rem;
             width: 100%; border-radius: 12px; font-weight: 800; font-size: 1.1rem;
             cursor: pointer; box-shadow: 0 10px 20px rgba(37, 99, 235, 0.3); transition: transform 0.2s;
-            font-family: 'Poppins', sans-serif;
         }
         .btn-launch:hover { transform: translateY(-3px); box-shadow: 0 15px 25px rgba(37, 99, 235, 0.4); }
 
@@ -109,7 +108,7 @@
                 <a href="../dashboard/index.html"><svg style="width: 20px; margin-right: 12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg> Dashboard</a>
             </li>
             <li class="active">
-                <a href="index.html"><svg style="width: 20px; margin-right: 12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg> Available Exams</a>
+                <a href="#"><svg style="width: 20px; margin-right: 12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg> Available Exams</a>
             </li>
             <li>
                 <a href="../view-results/index.html"><svg style="width: 20px; margin-right: 12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg> My Results</a>
@@ -189,7 +188,7 @@
                         </div>
 
                         <div id="launch-container" style="width: 100%; display: flex; flex-direction: column; gap: 10px;">
-                            <button class="btn-launch" disabled>Loading...</button>
+                            <button class="btn-launch" id="start-exam-btn">Loading...</button>
                         </div>
                     </div>
                 </div>
@@ -206,7 +205,7 @@
                         <table class="data-table">
                             <thead>
                                 <tr>
-                                    <th>Date &amp; Time</th>
+                                    <th>Date & Time</th>
                                     <th>Subject Breakdown</th>
                                     <th>Post-UTME</th>
                                     <th>Aggregate</th>
@@ -227,96 +226,85 @@
     <script src="../static/app.js"></script>
 
     <script>
-        // FIX: store email/userId as module-level vars to avoid inline onclick injection
-        let _pmtEmail  = '';
-        let _pmtUserId = '';
         let userProfile = null;
+        let currentUserEmail = null;
+        let currentUserId = null;
+
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('active');
+            document.getElementById('mobile-overlay').classList.toggle('active');
+        }
 
         document.addEventListener("DOMContentLoaded", async () => {
             const { data: { session }, error: authError } = await supabaseClient.auth.getSession();
             if (!session || authError) return window.location.href = '../login/index.html';
 
-            _pmtEmail  = session.user.email;
-            _pmtUserId = session.user.id;
+            currentUserEmail = session.user.email;
+            currentUserId = session.user.id;
 
             const { data: profile } = await supabaseClient.from('profiles').select('*').eq('id', session.user.id).single();
             userProfile = profile;
 
-            if (profile?.full_name) {
+            if (profile.full_name) {
                 const nameParts = profile.full_name.trim().split(/\s+/);
                 let initials = nameParts[0].charAt(0).toUpperCase();
                 if (nameParts.length > 1) initials += nameParts[1].charAt(0).toUpperCase();
                 document.getElementById('user-avatar').innerText = initials;
             }
 
-            document.getElementById('user-jamb-score').innerText = profile?.jamb_score || 'Not Set';
+            document.getElementById('user-jamb-score').innerText = profile.jamb_score || 'Not Set';
 
-            const planStatus     = document.getElementById('plan-status');
+            const planStatus = document.getElementById('plan-status');
             const launchContainer = document.getElementById('launch-container');
 
+            // Fetch actual tests from results to prevent local bypass
             const { data: resultsData } = await supabaseClient.from('results').select('id').eq('student_id', session.user.id);
             const actualTestsTaken = resultsData ? resultsData.length : 0;
             
+            // 🚀 STANDARD MONETIZATION LOGIC
             launchContainer.innerHTML = '';
 
-            if (profile?.has_paid) {
+            if (profile.has_paid) {
                 planStatus.innerText = "Premium Plan: Unlimited Access";
-                const btn = document.createElement('button');
-                btn.className = 'btn-launch';
-                btn.style.background = '#16a34a';
-                btn.textContent = 'Start Premium Exam';
-                btn.onclick = () => window.location.href = '../exam-room/';
-                launchContainer.appendChild(btn);
+                launchContainer.innerHTML = `<button class="btn-launch" style="background: #16a34a;" onclick="window.location.href='../exam-room/'">Start Premium Exam</button>`;
             } else {
                 if (actualTestsTaken >= 1) {
                     planStatus.innerText = "Free Limit Reached (1/1)";
-                    const btn = document.createElement('button');
-                    btn.className = 'btn-launch';
-                    btn.style.background = '#ea580c';
-                    btn.textContent = '👑 Unlock Full Access (₦1,050)';
-                    btn.onclick = initiatePayment;
-                    launchContainer.appendChild(btn);
+                    launchContainer.innerHTML = `<button class="btn-launch" style="background: #ea580c;" onclick="initiatePayment('${session.user.email}', '${session.user.id}')">👑 Unlock Full Access (₦1,050)</button>`;
                 } else {
-                    planStatus.innerText = `Free Tier: ${1 - actualTestsTaken} Test${1 - actualTestsTaken !== 1 ? 's' : ''} Remaining`;
-                    
-                    const freeBtn = document.createElement('button');
-                    freeBtn.className = 'btn-launch';
-                    freeBtn.style.background = '#2563eb';
-                    freeBtn.textContent = 'Start Free Test';
-                    freeBtn.onclick = () => window.location.href = '../exam-room/';
-                    
-                    const upgradeBtn = document.createElement('button');
-                    upgradeBtn.className = 'btn-launch';
-                    upgradeBtn.style.cssText = 'background: transparent; border: 2px solid white; color: white;';
-                    upgradeBtn.textContent = '👑 Upgrade Now';
-                    upgradeBtn.onclick = initiatePayment;
-                    
-                    launchContainer.appendChild(freeBtn);
-                    launchContainer.appendChild(upgradeBtn);
+                    planStatus.innerText = `Free Tier: ${1 - actualTestsTaken} Tests Remaining`;
+                    launchContainer.innerHTML = `
+                        <button class="btn-launch" style="background: #2563eb;" onclick="window.location.href='../exam-room/'">Start Free Test</button>
+                        <button class="btn-launch" style="background: transparent; border: 2px solid white; color: white;" onclick="initiatePayment('${session.user.email}', '${session.user.id}')">👑 Upgrade Now</button>
+                    `;
                 }
             }
 
             fetchHistory(session.user.id);
         });
 
-        // FIX: function uses module-level vars — no user data injected into onclick attributes
-        function initiatePayment() {
+        // PAYSTACK INLINE POPUP FUNCTION
+        function initiatePayment(email, userId) {
             let handler = PaystackPop.setup({
                 key: 'pk_live_f1ca0bad0d6913267fb525e6c58cd2c447a1ae29', 
-                email: _pmtEmail,
-                amount: 1050 * 100,
+                email: email,
+                amount: 1050 * 100, // 1050 Naira in kobo
                 currency: 'NGN',
-                ref: 'AFIT_' + Date.now(),
+                ref: 'AFIT_' + Math.floor((Math.random() * 1000000000) + 1),
                 metadata: {
-                    custom_fields: [{
-                        display_name: "Student ID",
-                        variable_name: "student_id",
-                        value: _pmtUserId
-                    }]
+                    custom_fields: [
+                        {
+                            display_name: "Student ID",
+                            variable_name: "student_id",
+                            value: userId
+                        }
+                    ]
                 },
                 callback: function(response) {
                     alert('Payment successful! Verifying your account upgrade. The page will refresh momentarily.');
-                    setTimeout(() => window.location.reload(), 3000);
+                    setTimeout(() => {
+                        window.location.reload(); 
+                    }, 3000);
                 },
                 onClose: function() {
                     alert('Payment process was cancelled.');
@@ -327,8 +315,7 @@
 
         async function fetchHistory(userId) {
             const { data, error } = await supabaseClient
-                .from('results').select('*').eq('student_id', userId)
-                .order('submitted_at', { ascending: false }).limit(10);
+                .from('results').select('*').eq('student_id', userId).order('submitted_at', { ascending: false }).limit(10);
                 
             const tbody = document.getElementById('history-body');
             
@@ -337,15 +324,17 @@
                 return;
             }
 
-            tbody.innerHTML = '';
-            const jambWeight = (userProfile?.jamb_score || 0) / 8;
+            tbody.innerHTML = ''; 
+            const jambScore = userProfile.jamb_score || 0;
+            const jambWeight = jambScore / 8;
 
             data.forEach((row) => {
-                const dateObj      = new Date(row.submitted_at);
+                const dateObj = new Date(row.submitted_at);
                 const formattedDate = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-                const badgeClass   = row.total_score >= 25 ? 'badge-green' : 'badge-orange';
+                const badgeClass = row.total_score >= 25 ? 'badge-green' : 'badge-orange';
                 const finalAggregate = (jambWeight + row.total_score).toFixed(1);
 
+                // 🚀 DYNAMIC SUBJECT GENERATOR FOR EXAMS HISTORY TABLE
                 const allScores = [
                     { name: 'ENG', val: row.english_score },
                     { name: 'GNS', val: row.gns_score },
@@ -358,35 +347,28 @@
                     { name: 'COM', val: row.commerce_score }
                 ].filter(s => s.val !== undefined && s.val !== null && s.val > 0);
 
-                if (allScores.length === 0) allScores.push({ name: 'ENG', val: 0 });
+                if (allScores.length === 0) allScores.push({ name: 'ENG', val: 0 }); // Fallback
 
-                // Build row using DOM APIs — no user data injected into innerHTML
+                // Format dynamically mapped scores nicely
+                let breakdownHtml = allScores.map(s => `${s.name}:<strong>${s.val}</strong>`).join(' | ');
+
                 const tr = document.createElement('tr');
-
-                const tdDate = document.createElement('td');
-                const dateStrong = document.createElement('strong');
-                dateStrong.textContent = formattedDate;
-                tdDate.appendChild(dateStrong);
-
-                const tdBreak = document.createElement('td');
-                tdBreak.style.cssText = 'font-size: 0.8rem; color: #475569; line-height: 1.8;';
-                tdBreak.textContent = allScores.map(s => s.name + ':' + s.val).join(' | ');
-
-                const tdScore = document.createElement('td');
-                const badge = document.createElement('span');
-                badge.className = 'score-badge ' + badgeClass;
-                badge.textContent = row.total_score + ' / 50';
-                tdScore.appendChild(badge);
-
-                const tdAgg = document.createElement('td');
-                const aggStrong = document.createElement('strong');
-                aggStrong.style.color = '#0f172a';
-                aggStrong.textContent = finalAggregate + '%';
-                tdAgg.appendChild(aggStrong);
-
-                tr.append(tdDate, tdBreak, tdScore, tdAgg);
+                tr.innerHTML = `
+                    <td><strong>${formattedDate}</strong></td>
+                    <td style="font-size: 0.8rem; color: #475569; line-height: 1.8;">
+                        ${breakdownHtml}
+                    </td>
+                    <td><span class="score-badge ${badgeClass}">${row.total_score} / 50</span></td>
+                    <td><strong style="color: #0f172a;">${finalAggregate}%</strong></td>
+                `;
                 tbody.appendChild(tr);
             });
+        }
+
+        window.logout = async function() {
+            await supabaseClient.auth.signOut();
+            localStorage.removeItem('cbt_session_token');
+            window.location.href = '../index.html';
         }
     </script>
 </body>
