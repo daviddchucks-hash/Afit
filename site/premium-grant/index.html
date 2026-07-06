@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Premium Access Manager — AFIT CBT</title>
+  <link rel="icon" href="../favicon.ico" type="image/x-icon" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #f1f5f9; --card: #fff; --border: #e2e8f0;
+      --text: #0f172a; --muted: #64748b;
+      --blue: #2563eb; --blue-dark: #1d4ed8;
+      --green: #16a34a; --green-light: #dcfce7;
+      --red: #dc2626; --red-light: #fee2e2;
+      --amber: #d97706; --amber-light: #fef3c7;
+      --font: 'Poppins', sans-serif;
+    }
+    body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; }
+
+    /* ── TOPBAR ── */
+    .topbar {
+      background: #0f172a; color: #fff; height: 60px;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 5%; position: sticky; top: 0; z-index: 100;
+      box-shadow: 0 2px 10px rgba(0,0,0,.3);
+    }
+    .topbar-left { display: flex; align-items: center; gap: 12px; }
+    .topbar-logo { width: 34px; height: 34px; background: #1e40af; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: .9rem; }
+    .topbar-title { font-size: 1rem; font-weight: 700; }
+    .topbar-title span { color: #60a5fa; }
+    .back-btn {
+      background: #1e293b; border: none; color: #94a3b8; padding: .4rem .9rem;
+      border-radius: 8px; font-size: .78rem; font-weight: 600; cursor: pointer;
+      text-decoration: none; display: inline-flex; align-items: center; gap: .4rem;
+    }
+    .back-btn:hover { color: #fff; }
+
+    /* ── PAGE ── */
+    .page { max-width: 820px; margin: 0 auto; padding: 2.5rem 5%; }
+
+    /* ── HERO CARD ── */
+    .hero {
+      background: linear-gradient(135deg, #1e40af 0%, #0f172a 100%);
+      border-radius: 18px; padding: 2.2rem 2.5rem; color: #fff;
+      margin-bottom: 2rem; position: relative; overflow: hidden;
+    }
+    .hero::after {
+      content: '★'; position: absolute; right: 2rem; top: 50%;
+      transform: translateY(-50%); font-size: 6rem; opacity: .06;
+    }
+    .hero h1 { font-size: 1.6rem; font-weight: 800; margin-bottom: .4rem; }
+    .hero p  { font-size: .88rem; color: #93c5fd; line-height: 1.6; }
+
+    /* ── TABS ── */
+    .tabs { display: flex; gap: .5rem; margin-bottom: 1.5rem; background: var(--card);
+      border: 1px solid var(--border); border-radius: 12px; padding: .4rem; }
+    .tab {
+      flex: 1; padding: .6rem 1rem; border: none; border-radius: 9px; font-family: var(--font);
+      font-size: .85rem; font-weight: 600; cursor: pointer; color: var(--muted);
+      background: transparent; transition: all .2s;
+    }
+    .tab.active { background: var(--blue); color: #fff; box-shadow: 0 3px 10px rgba(37,99,235,.3); }
+
+    /* ── CARD ── */
+    .card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 16px; padding: 1.8rem 2rem; margin-bottom: 1.5rem;
+    }
+    .card-title { font-size: 1rem; font-weight: 700; margin-bottom: 1.2rem;
+      display: flex; align-items: center; gap: .5rem; }
+
+    /* ── FORM ── */
+    .form-group { margin-bottom: 1.1rem; }
+    .form-group label { display: block; font-size: .8rem; font-weight: 600;
+      color: var(--muted); margin-bottom: .4rem; }
+    .form-group input, .form-group select {
+      width: 100%; border: 1.5px solid var(--border); border-radius: 10px;
+      padding: .7rem 1rem; font-size: .9rem; font-family: var(--font);
+      color: var(--text); outline: none; transition: border-color .2s, box-shadow .2s;
+      background: #fff;
+    }
+    .form-group input:focus, .form-group select:focus {
+      border-color: var(--blue); box-shadow: 0 0 0 3px rgba(37,99,235,.12);
+    }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    @media (max-width: 540px) { .form-row { grid-template-columns: 1fr; } }
+
+    /* ── BUTTONS ── */
+    .btn {
+      border: none; border-radius: 10px; padding: .75rem 1.5rem;
+      font-size: .9rem; font-weight: 700; cursor: pointer; font-family: var(--font);
+      display: inline-flex; align-items: center; gap: .5rem; transition: all .2s;
+    }
+    .btn-primary { background: var(--blue); color: #fff; width: 100%; justify-content: center; }
+    .btn-primary:hover:not(:disabled) { background: var(--blue-dark); transform: translateY(-1px); box-shadow: 0 4px 14px rgba(37,99,235,.35); }
+    .btn-primary:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+    .btn-green  { background: var(--green); color: #fff; }
+    .btn-green:hover  { background: #15803d; }
+    .btn-red    { background: var(--red);   color: #fff; }
+    .btn-red:hover    { background: #b91c1c; }
+    .btn-gray   { background: #f1f5f9; color: var(--text); border: 1px solid var(--border); }
+    .btn-gray:hover   { background: #e2e8f0; }
+    .btn-sm { padding: .45rem 1rem; font-size: .8rem; }
+
+    /* ── RESULT CARD ── */
+    .result-card {
+      border: 1.5px solid var(--border); border-radius: 14px; padding: 1.4rem 1.6rem;
+      display: none; margin-top: 1.2rem; transition: border-color .3s;
+    }
+    .result-card.visible { display: block; }
+    .result-card.premium-on  { border-color: var(--green); background: #f0fdf4; }
+    .result-card.premium-off { border-color: var(--border); background: #fafafa; }
+
+    .user-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.2rem; }
+    .avatar {
+      width: 52px; height: 52px; border-radius: 50%; background: #1e40af;
+      color: #fff; font-weight: 800; font-size: 1.2rem;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .user-name  { font-size: 1.05rem; font-weight: 700; }
+    .user-email { font-size: .82rem; color: var(--muted); }
+
+    .meta-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: .8rem; margin-bottom: 1.3rem;
+    }
+    .meta-item { background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: .7rem 1rem; }
+    .meta-label { font-size: .7rem; color: var(--muted); font-weight: 500; margin-bottom: .2rem; }
+    .meta-val   { font-size: .9rem; font-weight: 700; }
+
+    .action-row { display: flex; gap: .8rem; flex-wrap: wrap; }
+
+    /* ── PILL ── */
+    .pill {
+      display: inline-block; padding: .18rem .6rem; border-radius: 999px;
+      font-size: .72rem; font-weight: 700;
+    }
+    .pill-green  { background: var(--green-light); color: var(--green); }
+    .pill-red    { background: var(--red-light);   color: var(--red); }
+    .pill-blue   { background: #dbeafe; color: #1d4ed8; }
+    .pill-amber  { background: var(--amber-light); color: var(--amber); }
+    .pill-gray   { background: #f1f5f9; color: var(--muted); }
+
+    /* ── BULK AREA ── */
+    .bulk-textarea {
+      width: 100%; min-height: 140px; border: 1.5px solid var(--border); border-radius: 10px;
+      padding: .9rem 1rem; font-size: .85rem; font-family: var(--font); resize: vertical;
+      outline: none; transition: border-color .2s;
+    }
+    .bulk-textarea:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(37,99,235,.12); }
+
+    /* ── BULK RESULTS ── */
+    .bulk-results { margin-top: 1.2rem; display: none; }
+    .bulk-results.visible { display: block; }
+    .bulk-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: .65rem .9rem; border-radius: 10px; margin-bottom: .5rem;
+      font-size: .84rem; gap: .5rem; flex-wrap: wrap;
+    }
+    .bulk-row.success { background: var(--green-light); }
+    .bulk-row.error   { background: var(--red-light); }
+    .bulk-row.skipped { background: var(--amber-light); }
+    .bulk-row .br-email { font-weight: 600; }
+    .bulk-row .br-status { font-size: .78rem; }
+
+    /* ── LOG ── */
+    .log-list { list-style: none; }
+    .log-item {
+      display: flex; align-items: flex-start; gap: .8rem;
+      padding: .7rem 0; border-bottom: 1px solid #f1f5f9; font-size: .82rem;
+    }
+    .log-item:last-child { border-bottom: none; }
+    .log-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+    .log-dot.grant  { background: var(--green); }
+    .log-dot.revoke { background: var(--red); }
+    .log-dot.role   { background: var(--blue); }
+    .log-time  { color: var(--muted); font-size: .75rem; flex-shrink: 0; }
+    .log-empty { color: var(--muted); font-size: .83rem; text-align: center; padding: 1.5rem 0; }
+
+    /* ── ALERT ── */
+    .alert {
+      padding: .8rem 1.1rem; border-radius: 10px; font-size: .84rem;
+      font-weight: 600; margin-bottom: 1rem; display: none; align-items: center; gap: .6rem;
+    }
+    .alert.visible { display: flex; }
+    .alert-success { background: var(--green-light); color: var(--green); }
+    .alert-error   { background: var(--red-light);   color: var(--red); }
+    .alert-info    { background: #dbeafe; color: #1d4ed8; }
+
+    /* ── SPINNER ── */
+    .spin { display: inline-block; width: 16px; height: 16px; border: 2.5px solid rgba(255,255,255,.3);
+      border-top-color: #fff; border-radius: 50%; animation: spin .7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spin-dark { border-color: rgba(0,0,0,.12); border-top-color: var(--blue); }
+
+    /* ── OTP STEP ── */
+    .otp-step { display: none; }
+    .otp-step.visible { display: block; }
+    .otp-note { font-size: .8rem; color: var(--muted); margin-top: .5rem; line-height: 1.6; }
+    .step-indicator {
+      display: flex; gap: .5rem; align-items: center; margin-bottom: 1.5rem;
+    }
+    .step { display: flex; align-items: center; gap: .4rem; font-size: .78rem; font-weight: 600; }
+    .step-num {
+      width: 24px; height: 24px; border-radius: 50%; display: flex;
+      align-items: center; justify-content: center; font-size: .72rem; font-weight: 700;
+    }
+    .step.done .step-num   { background: var(--green); color: #fff; }
+    .step.active .step-num { background: var(--blue);  color: #fff; }
+    .step.idle .step-num   { background: #e2e8f0; color: var(--muted); }
+    .step.done .step-lbl   { color: var(--green); }
+    .step.active .step-lbl { color: var(--blue); }
+    .step.idle .step-lbl   { color: var(--muted); }
+    .step-arrow { color: var(--border); font-size: .9rem; }
+
+    .divider { height: 1px; background: var(--border); margin: 1.5rem 0; }
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="topbar-logo">A</div>
+    <div class="topbar-title">AFIT CBT — <span>Premium Manager</span></div>
+  </div>
+  <a class="back-btn" href="../admin/index.html">← Admin</a>
+</div>
+
+<div class="page">
+
+  <div class="hero">
+    <h1>⭐ Premium Access Manager</h1>
+    <p>Search any user by email, view their profile, and grant or revoke premium access instantly.<br/>
+    Use the <strong>Self-Upgrade</strong> tab to log in with OTP and auto-grant your own account.</p>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('single')"  id="tab-single">🔍 Single User</button>
+    <button class="tab"        onclick="switchTab('bulk')"    id="tab-bulk">📋 Bulk Grant</button>
+    <button class="tab"        onclick="switchTab('self')"    id="tab-self">🔐 Self-Upgrade</button>
+    <button class="tab"        onclick="switchTab('log')"     id="tab-log">📜 Activity Log</button>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════
+       TAB 1 — SINGLE USER
+  ══════════════════════════════════════════════════ -->
+  <div id="pane-single">
+    <div class="card">
+      <div class="card-title">🔍 Find User by Email</div>
+      <div id="alert-single" class="alert"></div>
+      <div class="form-group">
+        <label>Email Address</label>
+        <input type="email" id="search-email" placeholder="e.g. john.doe@gmail.com"
+          oninput="clearResult()" onkeydown="if(event.key==='Enter') searchUser()" />
+      </div>
+      <button class="btn btn-primary" id="search-btn" onclick="searchUser()">
+        Search User
+      </button>
+
+      <!-- RESULT CARD -->
+      <div class="result-card" id="result-card">
+        <div class="user-header">
+          <div class="avatar" id="rc-avatar">?</div>
+          <div>
+            <div class="user-name"  id="rc-name">—</div>
+            <div class="user-email" id="rc-email">—</div>
+          </div>
+          <div style="margin-left:auto;" id="rc-premium-pill"></div>
+        </div>
+        <div class="meta-grid">
+          <div class="meta-item"><div class="meta-label">Role</div>      <div class="meta-val" id="rc-role">—</div></div>
+          <div class="meta-item"><div class="meta-label">Exams Taken</div><div class="meta-val" id="rc-exams">—</div></div>
+          <div class="meta-item"><div class="meta-label">Course</div>    <div class="meta-val" id="rc-course">—</div></div>
+          <div class="meta-item"><div class="meta-label">Programme</div> <div class="meta-val" id="rc-prog">—</div></div>
+          <div class="meta-item"><div class="meta-label">State</div>     <div class="meta-val" id="rc-state">—</div></div>
+          <div class="meta-item"><div class="meta-label">JAMB Score</div><div class="meta-val" id="rc-jamb">—</div></div>
+        </div>
+        <div class="action-row">
+          <button class="btn btn-green btn-sm" id="btn-grant"  onclick="grantPremium()">✓ Grant Premium</button>
+          <button class="btn btn-red   btn-sm" id="btn-revoke" onclick="revokePremium()">✗ Revoke Premium</button>
+          <button class="btn btn-gray  btn-sm" onclick="clearResult()">✕ Clear</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════
+       TAB 2 — BULK GRANT
+  ══════════════════════════════════════════════════ -->
+  <div id="pane-bulk" style="display:none;">
+    <div class="card">
+      <div class="card-title">📋 Bulk Grant Premium</div>
+      <p style="font-size:.83rem;color:var(--muted);margin-bottom:1.1rem;line-height:1.6;">
+        Paste one email per line. The tool will find each user, check their current status, and grant premium to all of them in one go.
+      </p>
+      <div id="alert-bulk" class="alert"></div>
+      <div class="form-group">
+        <label>Email List (one per line)</label>
+        <textarea class="bulk-textarea" id="bulk-emails" placeholder="alice@gmail.com&#10;bob@yahoo.com&#10;carol@hotmail.com"></textarea>
+      </div>
+      <div style="display:flex;gap:.8rem;flex-wrap:wrap;">
+        <button class="btn btn-primary" style="flex:1;" id="bulk-grant-btn" onclick="runBulk('grant')">⭐ Grant All Premium</button>
+        <button class="btn btn-red btn-sm" id="bulk-revoke-btn" onclick="runBulk('revoke')">✗ Revoke All</button>
+      </div>
+      <div class="bulk-results" id="bulk-results"></div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════
+       TAB 3 — SELF UPGRADE
+  ══════════════════════════════════════════════════ -->
+  <div id="pane-self" style="display:none;">
+    <div class="card">
+      <div class="card-title">🔐 Self-Upgrade via OTP Login</div>
+
+      <!-- Step indicator -->
+      <div class="step-indicator">
+        <div class="step active" id="step1">
+          <div class="step-num">1</div>
+          <div class="step-lbl">Enter Email</div>
+        </div>
+        <div class="step-arrow">›</div>
+        <div class="step idle" id="step2">
+          <div class="step-num">2</div>
+          <div class="step-lbl">Enter OTP</div>
+        </div>
+        <div class="step-arrow">›</div>
+        <div class="step idle" id="step3">
+          <div class="step-num">3</div>
+          <div class="step-lbl">Premium Granted</div>
+        </div>
+      </div>
+
+      <div id="alert-self" class="alert"></div>
+
+      <!-- Step 1: email -->
+      <div id="self-step1">
+        <div class="form-group">
+          <label>Your Email Address</label>
+          <input type="email" id="self-email" placeholder="your.email@gmail.com" />
+        </div>
+        <button class="btn btn-primary" id="self-otp-btn" onclick="sendOTP()">Send OTP Code →</button>
+        <p class="otp-note">An 8-digit one-time code will be sent to your email. After you verify it, your account is automatically upgraded to Premium.</p>
+      </div>
+
+      <!-- Step 2: OTP -->
+      <div class="otp-step" id="self-step2">
+        <div class="form-group">
+          <label>8-Digit OTP Code</label>
+          <input type="text" id="self-otp" placeholder="e.g. 12345678" maxlength="8"
+            inputmode="numeric" pattern="[0-9]{8}"
+            onkeydown="if(event.key==='Enter') verifyOTP()" />
+        </div>
+        <div style="display:flex;gap:.8rem;flex-wrap:wrap;">
+          <button class="btn btn-primary" style="flex:1;" id="self-verify-btn" onclick="verifyOTP()">Verify & Upgrade →</button>
+          <button class="btn btn-gray btn-sm" onclick="resetSelfStep()">← Back</button>
+        </div>
+        <p class="otp-note" id="self-otp-note">Code sent to <strong id="self-email-display"></strong>. Check your inbox (and spam folder). Code expires in 10 minutes.</p>
+      </div>
+
+      <!-- Step 3: done -->
+      <div class="otp-step" id="self-step3">
+        <div style="text-align:center;padding:1.5rem 0;">
+          <div style="font-size:3rem;margin-bottom:.8rem;">⭐</div>
+          <div style="font-size:1.2rem;font-weight:800;color:var(--green);margin-bottom:.4rem;">Premium Activated!</div>
+          <div id="self-done-msg" style="font-size:.88rem;color:var(--muted);line-height:1.6;"></div>
+          <div style="margin-top:1.3rem;display:flex;gap:.8rem;justify-content:center;flex-wrap:wrap;">
+            <a href="../dashboard/index.html" class="btn btn-primary btn-sm">Go to Dashboard →</a>
+            <button class="btn btn-gray btn-sm" onclick="resetSelfStep()">Upgrade Another</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════
+       TAB 4 — ACTIVITY LOG
+  ══════════════════════════════════════════════════ -->
+  <div id="pane-log" style="display:none;">
+    <div class="card">
+      <div class="card-title" style="justify-content:space-between;">
+        <span>📜 Activity Log (this session)</span>
+        <button class="btn btn-gray btn-sm" onclick="clearLog()">Clear</button>
+      </div>
+      <ul class="log-list" id="log-list">
+        <li class="log-empty">No actions taken yet this session.</li>
+      </ul>
+    </div>
+  </div>
+
+</div><!-- /page -->
+
+<script>
+// ── SETUP ────────────────────────────────────────────────────────────────────
+const SUPABASE_URL  = 'https://kvlishlwkxdnlbatepsr.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt2bGlzaGx3a3hkbmxiYXRlcHNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk1NjMxNjIsImV4cCI6MjA5NTEzOTE2Mn0.tcl14-RfH6C_04gOm8T_cu9PlEFOmWM_BxD0PVIoXHQ';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+
+let currentUser = null;   // profile row of found user (single tab)
+const activityLog = [];
+
+// ── TABS ─────────────────────────────────────────────────────────────────────
+function switchTab(name) {
+  ['single','bulk','self','log'].forEach(t => {
+    document.getElementById('pane-'+t).style.display = t === name ? 'block' : 'none';
+    document.getElementById('tab-'+t).classList.toggle('active', t === name);
+  });
+}
+
+// ── ALERTS ───────────────────────────────────────────────────────────────────
+function showAlert(id, type, msg) {
+  const el = document.getElementById(id);
+  el.textContent = msg;
+  el.className   = `alert ${type} visible`;
+}
+function hideAlert(id) {
+  const el = document.getElementById(id);
+  el.className = 'alert';
+}
+
+// ── SINGLE USER ──────────────────────────────────────────────────────────────
+function clearResult() {
+  document.getElementById('result-card').className = 'result-card';
+  currentUser = null;
+  hideAlert('alert-single');
+}
+
+async function searchUser() {
+  const raw   = document.getElementById('search-email').value.trim().toLowerCase();
+  if (!raw) { showAlert('alert-single','alert-error','Please enter an email address.'); return; }
+
+  const btn = document.getElementById('search-btn');
+  btn.innerHTML = '<span class="spin"></span> Searching…';
+  btn.disabled  = true;
+  hideAlert('alert-single');
+  clearResult();
+
+  const { data, error } = await sb
+    .from('profiles')
+    .select('*')
+    .ilike('email', raw)
+    .limit(1)
+    .maybeSingle();
+
+  btn.innerHTML = 'Search User';
+  btn.disabled  = false;
+
+  if (error) { showAlert('alert-single','alert-error','Error: ' + error.message); return; }
+  if (!data)  { showAlert('alert-single','alert-error','No user found with that email address.'); return; }
+
+  currentUser = data;
+  renderResultCard(data);
+}
+
+function renderResultCard(u) {
+  const initials = (u.full_name || u.email || '?')
+    .split(' ').map(w => w[0]).join('').toUpperCase().slice(0,2) || '?';
+
+  document.getElementById('rc-avatar').textContent = initials;
+  document.getElementById('rc-name').textContent   = u.full_name || '(No name set)';
+  document.getElementById('rc-email').textContent  = u.email;
+  document.getElementById('rc-course').textContent = u.course_applied || '—';
+  document.getElementById('rc-prog').textContent   = u.program_type   || '—';
+  document.getElementById('rc-state').textContent  = u.state_of_origin|| '—';
+  document.getElementById('rc-jamb').textContent   = u.jamb_score != null ? u.jamb_score : '—';
+  document.getElementById('rc-exams').textContent  = u.tests_taken != null ? u.tests_taken : '—';
+
+  const rolePill = u.role === 'admin'     ? '<span class="pill pill-blue">Super Admin</span>'
+                 : u.role === 'jnr-admin' ? '<span class="pill pill-amber">Jnr Admin</span>'
+                 :                          '<span class="pill pill-gray">Student</span>';
+  document.getElementById('rc-role').innerHTML = rolePill;
+
+  const premPill = u.has_paid
+    ? '<span class="pill pill-green">⭐ Premium</span>'
+    : '<span class="pill pill-gray">Free</span>';
+  document.getElementById('rc-premium-pill').innerHTML = premPill;
+
+  document.getElementById('btn-grant').disabled  = !!u.has_paid;
+  document.getElementById('btn-revoke').disabled = !u.has_paid;
+
+  const rc = document.getElementById('result-card');
+  rc.className = 'result-card visible ' + (u.has_paid ? 'premium-on' : 'premium-off');
+}
+
+async function grantPremium() {
+  if (!currentUser) return;
+  await setPremium(currentUser.id, currentUser.email, true, 'alert-single', () => {
+    currentUser.has_paid = true;
+    renderResultCard(currentUser);
+  });
+}
+
+async function revokePremium() {
+  if (!currentUser) return;
+  await setPremium(currentUser.id, currentUser.email, false, 'alert-single', () => {
+    currentUser.has_paid = false;
+    renderResultCard(currentUser);
+  });
+}
+
+// ── CORE UPDATE ──────────────────────────────────────────────────────────────
+async function setPremium(userId, email, value, alertId, onSuccess) {
+  const { error } = await sb
+    .from('profiles')
+    .update({ has_paid: value })
+    .eq('id', userId);
+
+  if (error) {
+    showAlert(alertId, 'alert-error', '✗ Update failed: ' + error.message);
+    return;
+  }
+
+  const verb = value ? 'granted' : 'revoked';
+  showAlert(alertId, 'alert-success', `✓ Premium ${verb} for ${email}`);
+  addLog(value ? 'grant' : 'revoke', `Premium ${verb} → ${email}`);
+  if (onSuccess) onSuccess();
+}
+
+// ── BULK ─────────────────────────────────────────────────────────────────────
+async function runBulk(action) {
+  const raw    = document.getElementById('bulk-emails').value.trim();
+  const emails = [...new Set(raw.split(/\r?\n/).map(e => e.trim().toLowerCase()).filter(Boolean))];
+  if (!emails.length) { showAlert('alert-bulk','alert-error','Please enter at least one email.'); return; }
+
+  const grantBtn  = document.getElementById('bulk-grant-btn');
+  const revokeBtn = document.getElementById('bulk-revoke-btn');
+  grantBtn.innerHTML  = '<span class="spin"></span> Working…';
+  grantBtn.disabled   = true;
+  revokeBtn.disabled  = true;
+  hideAlert('alert-bulk');
+
+  const resultsEl = document.getElementById('bulk-results');
+  resultsEl.className = 'bulk-results visible';
+  resultsEl.innerHTML = `<div style="color:var(--muted);font-size:.83rem;"><span class="spin spin-dark"></span> Processing ${emails.length} email(s)…</div>`;
+
+  let ok = 0, skipped = 0, failed = 0;
+  const rows = [];
+
+  for (const email of emails) {
+    // Look up user
+    const { data: prof, error: fe } = await sb
+      .from('profiles').select('id,has_paid,full_name').ilike('email', email).limit(1).maybeSingle();
+
+    if (fe || !prof) {
+      rows.push({ email, cls: 'error', icon: '✗', msg: fe ? fe.message : 'User not found' });
+      failed++;
+      continue;
+    }
+
+    const alreadyDone = action === 'grant' ? !!prof.has_paid : !prof.has_paid;
+    if (alreadyDone) {
+      rows.push({ email, cls: 'skipped', icon: '—', msg: action === 'grant' ? 'Already Premium' : 'Already Free' });
+      skipped++;
+      continue;
+    }
+
+    const { error: ue } = await sb.from('profiles').update({ has_paid: action === 'grant' }).eq('id', prof.id);
+    if (ue) {
+      rows.push({ email, cls: 'error', icon: '✗', msg: ue.message });
+      failed++;
+    } else {
+      const verb = action === 'grant' ? 'Premium granted' : 'Premium revoked';
+      rows.push({ email, cls: 'success', icon: '✓', msg: verb + (prof.full_name ? ` (${prof.full_name})` : '') });
+      addLog(action === 'grant' ? 'grant' : 'revoke', `${verb} → ${email}`);
+      ok++;
+    }
+  }
+
+  grantBtn.innerHTML = '⭐ Grant All Premium';
+  grantBtn.disabled  = false;
+  revokeBtn.disabled = false;
+
+  const summary = `✓ ${ok} updated &nbsp;|&nbsp; — ${skipped} skipped &nbsp;|&nbsp; ✗ ${failed} failed`;
+  showAlert('alert-bulk', ok > 0 ? 'alert-success' : failed > 0 ? 'alert-error' : 'alert-info', '');
+  document.getElementById('alert-bulk').innerHTML = summary;
+  document.getElementById('alert-bulk').classList.add('visible');
+
+  resultsEl.innerHTML = rows.map(r =>
+    `<div class="bulk-row ${r.cls}">
+       <span class="br-email">${r.icon} ${r.email}</span>
+       <span class="br-status">${r.msg}</span>
+     </div>`
+  ).join('');
+}
+
+// ── SELF UPGRADE (OTP) ───────────────────────────────────────────────────────
+async function sendOTP() {
+  const email = document.getElementById('self-email').value.trim().toLowerCase();
+  if (!email) { showAlert('alert-self','alert-error','Please enter your email.'); return; }
+
+  const btn = document.getElementById('self-otp-btn');
+  btn.innerHTML = '<span class="spin"></span> Sending…';
+  btn.disabled  = true;
+  hideAlert('alert-self');
+
+  const { error } = await sb.auth.signInWithOtp({ email, options: { shouldCreateUser: false } });
+
+  btn.innerHTML = 'Send OTP Code →';
+  btn.disabled  = false;
+
+  if (error) {
+    showAlert('alert-self','alert-error','✗ ' + error.message);
+    return;
+  }
+
+  document.getElementById('self-email-display').textContent = email;
+  document.getElementById('self-step1').style.display = 'none';
+  document.getElementById('self-step2').classList.add('visible');
+  document.getElementById('step1').className = 'step done';
+  document.getElementById('step2').className = 'step active';
+}
+
+async function verifyOTP() {
+  const email = document.getElementById('self-email').value.trim().toLowerCase();
+  const token = document.getElementById('self-otp').value.trim();
+  if (!token) { showAlert('alert-self','alert-error','Please enter the OTP code.'); return; }
+
+  const btn = document.getElementById('self-verify-btn');
+  btn.innerHTML = '<span class="spin"></span> Verifying…';
+  btn.disabled  = true;
+  hideAlert('alert-self');
+
+  // Try all three OTP types in sequence (same pattern as login page)
+  let session = null;
+  for (const type of ['email', 'magiclink', 'signup']) {
+    const { data, error } = await sb.auth.verifyOtp({ email, token, type });
+    if (!error && data?.session) { session = data.session; break; }
+  }
+
+  btn.innerHTML = 'Verify & Upgrade →';
+  btn.disabled  = false;
+
+  if (!session) {
+    showAlert('alert-self','alert-error','✗ Invalid or expired OTP code. Please try again.');
+    return;
+  }
+
+  // Grant premium to this user
+  const userId = session.user.id;
+  const { data: prof } = await sb.from('profiles').select('full_name,email,has_paid').eq('id', userId).single();
+
+  if (prof?.has_paid) {
+    // Already premium
+    document.getElementById('self-done-msg').innerHTML =
+      `You are already a Premium member, <strong>${prof.full_name || email}</strong>! Head to your dashboard to start your exam.`;
+  } else {
+    const { error: ue } = await sb.from('profiles').update({ has_paid: true }).eq('id', userId);
+    if (ue) {
+      showAlert('alert-self','alert-error','✗ Logged in OK but update failed: ' + ue.message);
+      return;
+    }
+    document.getElementById('self-done-msg').innerHTML =
+      `Welcome, <strong>${prof?.full_name || email}</strong>! Your account now has <strong>full premium access</strong>. You can take unlimited exams starting right now.`;
+    addLog('grant', `Self-upgrade via OTP → ${email}`);
+  }
+
+  document.getElementById('self-step2').classList.remove('visible');
+  document.getElementById('self-step3').classList.add('visible');
+  document.getElementById('step2').className = 'step done';
+  document.getElementById('step3').className = 'step done';
+}
+
+function resetSelfStep() {
+  document.getElementById('self-step1').style.display = 'block';
+  document.getElementById('self-step2').classList.remove('visible');
+  document.getElementById('self-step3').classList.remove('visible');
+  document.getElementById('self-email').value = '';
+  document.getElementById('self-otp').value   = '';
+  document.getElementById('step1').className = 'step active';
+  document.getElementById('step2').className = 'step idle';
+  document.getElementById('step3').className = 'step idle';
+  hideAlert('alert-self');
+}
+
+// ── ACTIVITY LOG ─────────────────────────────────────────────────────────────
+function addLog(type, msg) {
+  activityLog.unshift({ type, msg, time: new Date().toLocaleTimeString() });
+  renderLog();
+}
+function renderLog() {
+  const el = document.getElementById('log-list');
+  if (!activityLog.length) {
+    el.innerHTML = '<li class="log-empty">No actions taken yet this session.</li>';
+    return;
+  }
+  el.innerHTML = activityLog.map(e =>
+    `<li class="log-item">
+       <div class="log-dot ${e.type}"></div>
+       <div style="flex:1;">${e.msg}</div>
+       <div class="log-time">${e.time}</div>
+     </li>`
+  ).join('');
+}
+function clearLog() { activityLog.length = 0; renderLog(); }
+</script>
+</body>
+</html>
