@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DB Explorer — AFIT CBT</title>
+  <link rel="icon" href="../favicon.ico" type="image/x-icon" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #f1f5f9; --card: #ffffff; --border: #e2e8f0;
+      --text: #0f172a; --muted: #64748b; --accent: #2563eb;
+      --green: #16a34a; --red: #dc2626; --amber: #d97706;
+      --row-even: #f8fafc; --row-hover: #eff6ff;
+      --font: 'Poppins', sans-serif;
+    }
+    body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; }
+
+    /* ── TOP BAR ── */
+    .topbar {
+      background: #0f172a; color: white; padding: 0 5%;
+      display: flex; align-items: center; justify-content: space-between;
+      height: 60px; position: sticky; top: 0; z-index: 100;
+      box-shadow: 0 2px 8px rgba(0,0,0,.25);
+    }
+    .topbar-title { font-size: 1.1rem; font-weight: 700; letter-spacing: -.3px; }
+    .topbar-title span { color: #60a5fa; }
+    .topbar-meta { font-size: .75rem; color: #94a3b8; }
+    .refresh-btn {
+      background: #2563eb; border: none; color: white; padding: .45rem 1.1rem;
+      border-radius: 8px; font-size: .8rem; font-weight: 600; cursor: pointer;
+      transition: background .2s;
+    }
+    .refresh-btn:hover { background: #1d4ed8; }
+
+    /* ── LAYOUT ── */
+    .page { padding: 2rem 5%; max-width: 1600px; margin: 0 auto; }
+
+    /* ── SESSION BANNER ── */
+    .session-banner {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 14px; padding: 1.1rem 1.5rem; margin-bottom: 1.5rem;
+      display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
+    }
+    .session-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .session-dot.active { background: var(--green); box-shadow: 0 0 0 3px #bbf7d0; }
+    .session-dot.none   { background: var(--muted); }
+    .session-info { font-size: .85rem; flex: 1; min-width: 200px; }
+    .session-info strong { display: block; font-size: .95rem; }
+
+    /* ── STATS ROW ── */
+    .stats-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1rem; margin-bottom: 2rem;
+    }
+    .stat-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 14px; padding: 1.2rem 1.5rem;
+      display: flex; flex-direction: column; gap: .3rem;
+      transition: transform .15s, box-shadow .15s;
+    }
+    .stat-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px -8px rgba(0,0,0,.12); }
+    .stat-val { font-size: 2rem; font-weight: 800; line-height: 1; }
+    .stat-lbl { font-size: .78rem; color: var(--muted); font-weight: 500; }
+    .stat-status { font-size: .7rem; font-weight: 600; margin-top: .2rem; }
+    .ok  { color: var(--green); } .blocked { color: var(--red); } .warn { color: var(--amber); }
+
+    /* ── SECTION ── */
+    .section { margin-bottom: 2.5rem; }
+    .section-header {
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: .7rem; margin-bottom: 1rem;
+    }
+    .section-title {
+      font-size: 1.1rem; font-weight: 700;
+      display: flex; align-items: center; gap: .5rem;
+    }
+    .badge {
+      font-size: .7rem; font-weight: 700; padding: .2rem .55rem;
+      border-radius: 999px; display: inline-flex; align-items: center;
+    }
+    .badge-blue   { background: #dbeafe; color: #1d4ed8; }
+    .badge-green  { background: #dcfce7; color: var(--green); }
+    .badge-red    { background: #fee2e2; color: var(--red); }
+    .badge-amber  { background: #fef3c7; color: var(--amber); }
+    .badge-gray   { background: #f1f5f9; color: var(--muted); }
+
+    .controls { display: flex; gap: .6rem; flex-wrap: wrap; align-items: center; }
+    .search-inp {
+      border: 1px solid var(--border); border-radius: 8px; padding: .4rem .8rem;
+      font-size: .82rem; font-family: var(--font); width: 220px; outline: none;
+    }
+    .search-inp:focus { border-color: var(--accent); }
+    .export-btn {
+      background: #f1f5f9; border: 1px solid var(--border); border-radius: 8px;
+      padding: .4rem .9rem; font-size: .78rem; font-weight: 600; cursor: pointer;
+      transition: background .2s;
+    }
+    .export-btn:hover { background: #e2e8f0; }
+    .page-btn {
+      background: var(--card); border: 1px solid var(--border); border-radius: 8px;
+      padding: .35rem .8rem; font-size: .78rem; font-weight: 600; cursor: pointer;
+    }
+    .page-btn:disabled { opacity: .4; cursor: default; }
+
+    /* ── TABLE ── */
+    .table-wrap {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 14px; overflow: hidden;
+    }
+    .table-scroll { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: .8rem; }
+    thead th {
+      background: #0f172a; color: white; padding: .7rem 1rem;
+      text-align: left; font-weight: 600; white-space: nowrap;
+      position: sticky; top: 0;
+    }
+    tbody tr:nth-child(even) { background: var(--row-even); }
+    tbody tr:hover { background: var(--row-hover); }
+    tbody td {
+      padding: .6rem 1rem; border-bottom: 1px solid #f1f5f9;
+      max-width: 300px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    tbody td.wrap { white-space: normal; word-break: break-word; }
+    .table-footer {
+      padding: .7rem 1rem; border-top: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      font-size: .78rem; color: var(--muted); flex-wrap: wrap; gap: .5rem;
+    }
+
+    /* ── BLOCKED / ERROR ── */
+    .blocked-card {
+      background: #fff7f7; border: 1px solid #fecaca;
+      border-radius: 14px; padding: 1.5rem; text-align: center;
+    }
+    .blocked-card .icon { font-size: 2rem; margin-bottom: .5rem; }
+    .blocked-card .title { font-weight: 700; color: var(--red); margin-bottom: .3rem; }
+    .blocked-card .msg   { font-size: .83rem; color: var(--muted); }
+
+    /* ── PILL TAGS ── */
+    .pill {
+      display: inline-block; padding: .15rem .5rem; border-radius: 999px;
+      font-size: .7rem; font-weight: 700;
+    }
+    .pill-green  { background: #dcfce7; color: var(--green); }
+    .pill-red    { background: #fee2e2; color: var(--red); }
+    .pill-blue   { background: #dbeafe; color: #1d4ed8; }
+    .pill-amber  { background: #fef3c7; color: var(--amber); }
+    .pill-gray   { background: #f1f5f9; color: var(--muted); }
+
+    /* ── JSON VIEWER ── */
+    .json-viewer {
+      background: #0f172a; color: #e2e8f0; border-radius: 12px;
+      padding: 1.2rem 1.5rem; font-family: monospace; font-size: .78rem;
+      overflow-x: auto; white-space: pre-wrap; line-height: 1.7;
+      max-height: 400px; overflow-y: auto;
+    }
+    .json-viewer .key   { color: #93c5fd; }
+    .json-viewer .str   { color: #86efac; }
+    .json-viewer .num   { color: #fbbf24; }
+    .json-viewer .bool  { color: #f9a8d4; }
+    .json-viewer .null  { color: #94a3b8; }
+
+    /* ── LOADER ── */
+    .loading-row td { text-align: center; color: var(--muted); padding: 2rem !important; }
+    .spinner {
+      display: inline-block; width: 18px; height: 18px;
+      border: 3px solid #e2e8f0; border-top-color: var(--accent);
+      border-radius: 50%; animation: spin .7s linear infinite;
+      vertical-align: middle; margin-right: .4rem;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── RPC SECTION ── */
+    .rpc-controls {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 14px; padding: 1.3rem 1.5rem; margin-bottom: 1rem;
+      display: flex; gap: .8rem; flex-wrap: wrap; align-items: flex-end;
+    }
+    .form-group { display: flex; flex-direction: column; gap: .3rem; }
+    .form-group label { font-size: .78rem; font-weight: 600; color: var(--muted); }
+    .form-group select, .form-group input {
+      border: 1px solid var(--border); border-radius: 8px; padding: .45rem .8rem;
+      font-size: .85rem; font-family: var(--font); outline: none;
+    }
+    .run-btn {
+      background: var(--accent); border: none; color: white;
+      padding: .5rem 1.3rem; border-radius: 8px; font-size: .85rem;
+      font-weight: 600; cursor: pointer; align-self: flex-end;
+    }
+    .run-btn:hover { background: #1d4ed8; }
+
+    /* ── AUTH SECTION ── */
+    .auth-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1rem;
+    }
+    .auth-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 14px; padding: 1.3rem 1.5rem;
+    }
+    .auth-card h4 { font-size: .9rem; font-weight: 700; margin-bottom: .8rem; }
+    .kv-row { display: flex; justify-content: space-between; font-size: .8rem;
+      padding: .35rem 0; border-bottom: 1px solid #f1f5f9; flex-wrap: wrap; gap: .3rem; }
+    .kv-row:last-child { border-bottom: none; }
+    .kv-key { color: var(--muted); font-weight: 500; }
+    .kv-val { font-weight: 600; text-align: right; max-width: 200px;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 640px) {
+      .page { padding: 1.2rem 4%; }
+      .topbar { padding: 0 4%; }
+      .stat-val { font-size: 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <div>
+    <div class="topbar-title">AFIT CBT — <span>DB Explorer</span></div>
+    <div class="topbar-meta" id="last-fetched">Initialising…</div>
+  </div>
+  <button class="refresh-btn" onclick="init()">↺ Refresh All</button>
+</div>
+
+<div class="page">
+
+  <!-- SESSION BANNER -->
+  <div class="session-banner">
+    <div class="session-dot none" id="session-dot"></div>
+    <div class="session-info">
+      <strong id="session-label">Checking auth session…</strong>
+      <span id="session-detail">Connecting to Supabase</span>
+    </div>
+    <span id="session-role-pill"></span>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-grid" id="stats-grid">
+    <div class="stat-card"><div class="stat-val">—</div><div class="stat-lbl">profiles rows</div><div class="stat-status" id="ss-profiles">loading…</div></div>
+    <div class="stat-card"><div class="stat-val">—</div><div class="stat-lbl">questions rows</div><div class="stat-status" id="ss-questions">loading…</div></div>
+    <div class="stat-card"><div class="stat-val">—</div><div class="stat-lbl">staging_questions rows</div><div class="stat-status" id="ss-staging">loading…</div></div>
+    <div class="stat-card"><div class="stat-val">—</div><div class="stat-lbl">results rows</div><div class="stat-status" id="ss-results">loading…</div></div>
+  </div>
+
+  <!-- ── TABLE: profiles ── -->
+  <div class="section" id="sec-profiles">
+    <div class="section-header">
+      <div class="section-title">
+        👤 <code>profiles</code>
+        <span class="badge badge-gray" id="badge-profiles">…</span>
+      </div>
+      <div class="controls">
+        <input class="search-inp" id="q-profiles" placeholder="Search…" oninput="filterTable('profiles')" />
+        <button class="export-btn" onclick="exportCSV('profiles')">⬇ CSV</button>
+        <button class="export-btn" onclick="exportJSON('profiles')">⬇ JSON</button>
+        <button class="page-btn" id="prev-profiles" onclick="prevPage('profiles')" disabled>‹ Prev</button>
+        <button class="page-btn" id="next-profiles" onclick="nextPage('profiles')">Next ›</button>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <div class="table-scroll">
+        <table id="tbl-profiles">
+          <thead><tr id="head-profiles"></tr></thead>
+          <tbody id="body-profiles"><tr class="loading-row"><td colspan="20"><span class="spinner"></span> Loading…</td></tr></tbody>
+        </table>
+      </div>
+      <div class="table-footer">
+        <span id="foot-profiles">—</span>
+        <span id="page-profiles">Page 1</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── TABLE: questions ── -->
+  <div class="section" id="sec-questions">
+    <div class="section-header">
+      <div class="section-title">
+        📚 <code>questions</code>
+        <span class="badge badge-gray" id="badge-questions">…</span>
+      </div>
+      <div class="controls">
+        <input class="search-inp" id="q-questions" placeholder="Search…" oninput="filterTable('questions')" />
+        <button class="export-btn" onclick="exportCSV('questions')">⬇ CSV</button>
+        <button class="export-btn" onclick="exportJSON('questions')">⬇ JSON</button>
+        <button class="page-btn" id="prev-questions" onclick="prevPage('questions')" disabled>‹ Prev</button>
+        <button class="page-btn" id="next-questions" onclick="nextPage('questions')">Next ›</button>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <div class="table-scroll">
+        <table id="tbl-questions">
+          <thead><tr id="head-questions"></tr></thead>
+          <tbody id="body-questions"><tr class="loading-row"><td colspan="20"><span class="spinner"></span> Loading…</td></tr></tbody>
+        </table>
+      </div>
+      <div class="table-footer">
+        <span id="foot-questions">—</span>
+        <span id="page-questions">Page 1</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── TABLE: staging_questions ── -->
+  <div class="section" id="sec-staging">
+    <div class="section-header">
+      <div class="section-title">
+        📥 <code>staging_questions</code>
+        <span class="badge badge-gray" id="badge-staging">…</span>
+      </div>
+      <div class="controls">
+        <input class="search-inp" id="q-staging" placeholder="Search…" oninput="filterTable('staging')" />
+        <button class="export-btn" onclick="exportCSV('staging')">⬇ CSV</button>
+        <button class="export-btn" onclick="exportJSON('staging')">⬇ JSON</button>
+        <button class="page-btn" id="prev-staging" onclick="prevPage('staging')" disabled>‹ Prev</button>
+        <button class="page-btn" id="next-staging" onclick="nextPage('staging')">Next ›</button>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <div class="table-scroll">
+        <table id="tbl-staging">
+          <thead><tr id="head-staging"></tr></thead>
+          <tbody id="body-staging"><tr class="loading-row"><td colspan="20"><span class="spinner"></span> Loading…</td></tr></tbody>
+        </table>
+      </div>
+      <div class="table-footer">
+        <span id="foot-staging">—</span>
+        <span id="page-staging">Page 1</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── TABLE: results ── -->
+  <div class="section" id="sec-results">
+    <div class="section-header">
+      <div class="section-title">
+        📊 <code>results</code>
+        <span class="badge badge-gray" id="badge-results">…</span>
+      </div>
+      <div class="controls">
+        <input class="search-inp" id="q-results" placeholder="Search…" oninput="filterTable('results')" />
+        <button class="export-btn" onclick="exportCSV('results')">⬇ CSV</button>
+        <button class="export-btn" onclick="exportJSON('results')">⬇ JSON</button>
+        <button class="page-btn" id="prev-results" onclick="prevPage('results')" disabled>‹ Prev</button>
+        <button class="page-btn" id="next-results" onclick="nextPage('results')">Next ›</button>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <div class="table-scroll">
+        <table id="tbl-results">
+          <thead><tr id="head-results"></tr></thead>
+          <tbody id="body-results"><tr class="loading-row"><td colspan="20"><span class="spinner"></span> Loading…</td></tr></tbody>
+        </table>
+      </div>
+      <div class="table-footer">
+        <span id="foot-results">—</span>
+        <span id="page-results">Page 1</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── RPC: get_random_questions ── -->
+  <div class="section">
+    <div class="section-title" style="margin-bottom:1rem;">
+      ⚡ RPC — <code>get_random_questions</code>
+    </div>
+    <div class="rpc-controls">
+      <div class="form-group">
+        <label>Subject</label>
+        <select id="rpc-subject">
+          <option value="english">english</option>
+          <option value="mathematics">mathematics</option>
+          <option value="physics">physics</option>
+          <option value="chemistry">chemistry</option>
+          <option value="economics">economics</option>
+          <option value="literature">literature</option>
+          <option value="government">government</option>
+          <option value="commerce">commerce</option>
+          <option value="gns">gns</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Limit</label>
+        <input type="number" id="rpc-limit" value="5" min="1" max="40" style="width:80px;" />
+      </div>
+      <button class="run-btn" onclick="runRPC()">▶ Run RPC</button>
+    </div>
+    <div id="rpc-output"></div>
+  </div>
+
+  <!-- ── AUTH INFO ── -->
+  <div class="section">
+    <div class="section-title" style="margin-bottom:1rem;">
+      🔐 Auth Session
+    </div>
+    <div class="auth-grid" id="auth-grid">
+      <div class="auth-card">
+        <h4>Current Session</h4>
+        <div id="auth-session-content"><div style="color:var(--muted);font-size:.85rem;"><span class="spinner"></span> Checking…</div></div>
+      </div>
+      <div class="auth-card">
+        <h4>Current User object</h4>
+        <div id="auth-user-content"><div style="color:var(--muted);font-size:.85rem;"><span class="spinner"></span> Checking…</div></div>
+      </div>
+      <div class="auth-card">
+        <h4>Profile Row (if logged in)</h4>
+        <div id="auth-profile-content"><div style="color:var(--muted);font-size:.85rem;"><span class="spinner"></span> Checking…</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── RAW SCHEMA DUMP ── -->
+  <div class="section">
+    <div class="section-title" style="margin-bottom:1rem;">
+      🧬 Raw First-Row Schema Dump
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:1rem;" id="schema-dump"></div>
+  </div>
+
+</div><!-- /page -->
+
+<script>
+// ── INIT ────────────────────────────────────────────────────────────────────
+const SUPABASE_URL = 'https://kvlishlwkxdnlbatepsr.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt2bGlzaGx3a3hkbmxiYXRlcHNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk1NjMxNjIsImV4cCI6MjA5NTEzOTE2Mn0.tcl14-RfH6C_04gOm8T_cu9PlEFOmWM_BxD0PVIoXHQ';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+
+const PAGE_SIZE = 50;
+
+// State per table
+const state = {};
+['profiles','questions','staging','results'].forEach(t => {
+  state[t] = { rows: [], filtered: [], page: 0, total: 0, error: null, loaded: false };
+});
+
+// Map short names → actual table names
+const TABLE_MAP = {
+  profiles: 'profiles',
+  questions: 'questions',
+  staging: 'staging_questions',
+  results: 'results'
+};
+
+async function init() {
+  document.getElementById('last-fetched').textContent = 'Fetching…';
+  await Promise.all([
+    checkSession(),
+    fetchTable('profiles'),
+    fetchTable('questions'),
+    fetchTable('staging'),
+    fetchTable('results'),
+  ]);
+  buildSchemaDump();
+  document.getElementById('last-fetched').textContent =
+    'Last fetched: ' + new Date().toLocaleTimeString();
+}
+
+// ── SESSION ──────────────────────────────────────────────────────────────────
+async function checkSession() {
+  const dot   = document.getElementById('session-dot');
+  const label = document.getElementById('session-label');
+  const detail= document.getElementById('session-detail');
+  const pill  = document.getElementById('session-role-pill');
+
+  const { data: { session } } = await sb.auth.getSession();
+  const { data: { user } }    = await sb.auth.getUser();
+
+  // Session card
+  const sesEl = document.getElementById('auth-session-content');
+  const usrEl = document.getElementById('auth-user-content');
+  const prfEl = document.getElementById('auth-profile-content');
+
+  if (session) {
+    dot.className = 'session-dot active';
+    label.textContent = user?.email || 'Logged in';
+    detail.textContent = `User ID: ${user?.id?.slice(0,18)}… | Provider: ${user?.app_metadata?.provider || 'email'}`;
+
+    sesEl.innerHTML = kvBlock({
+      'Access Token (first 40)': session.access_token?.slice(0,40)+'…',
+      'Token Type': session.token_type,
+      'Expires At': new Date(session.expires_at * 1000).toLocaleString(),
+      'Refresh Token': session.refresh_token ? '✓ present' : '✗ missing',
+    });
+    usrEl.innerHTML = kvBlock({
+      'ID': user.id,
+      'Email': user.email,
+      'Role': user.role,
+      'Created': new Date(user.created_at).toLocaleString(),
+      'Last Sign In': new Date(user.last_sign_in_at).toLocaleString(),
+      'Confirmed': user.email_confirmed_at ? '✓ Yes' : '✗ No',
+    });
+
+    // Fetch profile row
+    const { data: prof, error: pe } = await sb.from('profiles').select('*').eq('id', user.id).single();
+    if (prof) {
+      pill.innerHTML = `<span class="pill ${prof.role==='admin'?'pill-blue':prof.role==='jnr-admin'?'pill-amber':'pill-green'}">${prof.role || 'student'}</span>`;
+      const entries = {};
+      Object.entries(prof).forEach(([k,v]) => { entries[k] = v === null ? 'null' : String(v); });
+      prfEl.innerHTML = kvBlock(entries);
+    } else {
+      prfEl.innerHTML = `<div class="blocked" style="font-size:.83rem;">${pe?.message || 'No profile row found'}</div>`;
+    }
+  } else {
+    dot.className = 'session-dot none';
+    label.textContent = 'Not logged in (anon access)';
+    detail.textContent = 'Reading with Supabase anon key — RLS policies apply';
+    pill.innerHTML = '<span class="pill pill-gray">anon</span>';
+    sesEl.innerHTML = '<div style="color:var(--muted);font-size:.83rem;">No active session — using anon key</div>';
+    usrEl.innerHTML = '<div style="color:var(--muted);font-size:.83rem;">No user object</div>';
+    prfEl.innerHTML = '<div style="color:var(--muted);font-size:.83rem;">Not applicable without a session</div>';
+  }
+}
+
+function kvBlock(obj) {
+  return Object.entries(obj).map(([k,v]) =>
+    `<div class="kv-row"><span class="kv-key">${k}</span><span class="kv-val" title="${v}">${v}</span></div>`
+  ).join('');
+}
+
+// ── FETCH TABLE ──────────────────────────────────────────────────────────────
+async function fetchTable(key) {
+  const tbl = TABLE_MAP[key];
+  const s   = state[key];
+
+  // Count
+  const { count, error: ce } = await sb.from(tbl).select('*', { count: 'exact', head: true });
+
+  // Fetch all rows (up to 1000 — anon key hard limit per request is 1000)
+  let allRows = [];
+  let fetchError = null;
+
+  if (!ce) {
+    // Paginate in 1000-row chunks to get everything
+    const total = count || 0;
+    const chunks = Math.max(1, Math.ceil(total / 1000));
+    for (let i = 0; i < chunks; i++) {
+      const { data, error } = await sb.from(tbl).select('*').range(i * 1000, (i + 1) * 1000 - 1);
+      if (error) { fetchError = error; break; }
+      if (data) allRows = allRows.concat(data);
+    }
+  } else {
+    fetchError = ce;
+  }
+
+  s.total   = count || 0;
+  s.loaded  = true;
+  s.error   = fetchError;
+  s.rows    = allRows;
+  s.filtered = allRows;
+  s.page    = 0;
+
+  updateStatCard(key, count, fetchError);
+  renderTable(key);
+}
+
+function updateStatCard(key, count, error) {
+  const cards = document.getElementById('stats-grid').querySelectorAll('.stat-card');
+  const idx   = ['profiles','questions','staging','results'].indexOf(key);
+  const card  = cards[idx];
+  if (!card) return;
+  card.querySelector('.stat-val').textContent = error ? '✗' : (count ?? '0');
+  const ss = document.getElementById('ss-'+key);
+  if (ss) {
+    ss.textContent = error ? ('Blocked: ' + error.message) : 'readable ✓';
+    ss.className   = 'stat-status ' + (error ? 'blocked' : 'ok');
+  }
+}
+
+// ── RENDER TABLE ─────────────────────────────────────────────────────────────
+function renderTable(key) {
+  const s       = state[key];
+  const headEl  = document.getElementById('head-'+key);
+  const bodyEl  = document.getElementById('body-'+key);
+  const footEl  = document.getElementById('foot-'+key);
+  const pageEl  = document.getElementById('page-'+key);
+  const badgeEl = document.getElementById('badge-'+key);
+  const prevBtn = document.getElementById('prev-'+key);
+  const nextBtn = document.getElementById('next-'+key);
+
+  if (s.error) {
+    const colspan = 10;
+    headEl.innerHTML = '';
+    bodyEl.innerHTML = `<tr><td colspan="${colspan}">
+      <div class="blocked-card">
+        <div class="icon">🔒</div>
+        <div class="title">RLS Blocked</div>
+        <div class="msg">${s.error.message}</div>
+      </div></td></tr>`;
+    badgeEl.textContent = 'blocked';
+    badgeEl.className   = 'badge badge-red';
+    footEl.textContent  = 'Access denied by Row Level Security';
+    return;
+  }
+
+  const rows  = s.filtered;
+  const total = rows.length;
+  const start = s.page * PAGE_SIZE;
+  const slice = rows.slice(start, start + PAGE_SIZE);
+
+  badgeEl.textContent = total + ' rows';
+  badgeEl.className   = 'badge ' + (total > 0 ? 'badge-green' : 'badge-gray');
+
+  if (total === 0) {
+    headEl.innerHTML = '';
+    bodyEl.innerHTML = `<tr class="loading-row"><td colspan="20" style="color:var(--muted);">No rows returned (table empty or all filtered out)</td></tr>`;
+    footEl.textContent = '0 rows';
+    pageEl.textContent = '';
+    prevBtn.disabled = true;
+    nextBtn.disabled = true;
+    return;
+  }
+
+  // Build headers from first row keys
+  const cols = Object.keys(rows[0]);
+  headEl.innerHTML = cols.map(c => `<th>${c}</th>`).join('');
+
+  // Build body
+  bodyEl.innerHTML = slice.map(row => {
+    const cells = cols.map(c => {
+      const raw = row[c];
+      const v   = raw === null ? '<em style="color:#94a3b8">null</em>' : formatCell(c, raw);
+      const cls = ['question_text','option_a','option_b','option_c','option_d','full_name'].includes(c) ? 'wrap' : '';
+      return `<td class="${cls}" title="${raw ?? ''}">${v}</td>`;
+    });
+    return `<tr>${cells.join('')}</tr>`;
+  }).join('');
+
+  footEl.textContent = `Showing ${start+1}–${Math.min(start+PAGE_SIZE, total)} of ${total} rows (${s.total} total in table)`;
+  pageEl.textContent = `Page ${s.page + 1} / ${Math.ceil(total / PAGE_SIZE)}`;
+  prevBtn.disabled = s.page === 0;
+  nextBtn.disabled = start + PAGE_SIZE >= total;
+}
+
+function formatCell(col, val) {
+  if (typeof val === 'boolean') return val
+    ? '<span class="pill pill-green">true</span>'
+    : '<span class="pill pill-red">false</span>';
+  if (col === 'role') return `<span class="pill ${val==='admin'?'pill-blue':val==='jnr-admin'?'pill-amber':'pill-gray'}">${val}</span>`;
+  if (col === 'correct_answer') return `<span class="pill pill-blue">${val}</span>`;
+  if (col === 'has_paid') return val
+    ? '<span class="pill pill-green">paid</span>'
+    : '<span class="pill pill-gray">free</span>';
+  if (col === 'submitted_at' || col === 'created_at' || col === 'updated_at') {
+    try { return new Date(val).toLocaleString(); } catch(e) {}
+  }
+  if (col === 'total_score') {
+    const n = Number(val);
+    const cls = n >= 35 ? 'pill-green' : n >= 20 ? 'pill-amber' : 'pill-red';
+    return `<span class="pill ${cls}">${val}</span>`;
+  }
+  const s = String(val);
+  return s.length > 80 ? s.slice(0, 80) + '…' : s;
+}
+
+// ── FILTER / PAGINATE ────────────────────────────────────────────────────────
+function filterTable(key) {
+  const q = document.getElementById('q-'+key).value.toLowerCase().trim();
+  const s = state[key];
+  s.filtered = q
+    ? s.rows.filter(r => JSON.stringify(r).toLowerCase().includes(q))
+    : s.rows;
+  s.page = 0;
+  renderTable(key);
+}
+
+function prevPage(key) { if (state[key].page > 0) { state[key].page--; renderTable(key); } }
+function nextPage(key) {
+  const s = state[key];
+  if ((s.page + 1) * PAGE_SIZE < s.filtered.length) { s.page++; renderTable(key); }
+}
+
+// ── EXPORT ───────────────────────────────────────────────────────────────────
+function exportCSV(key) {
+  const rows = state[key].rows;
+  if (!rows.length) return alert('No data to export.');
+  const cols = Object.keys(rows[0]);
+  const csv  = [cols.join(','), ...rows.map(r =>
+    cols.map(c => JSON.stringify(r[c] ?? '')).join(',')
+  )].join('\r\n');
+  download(TABLE_MAP[key] + '_export.csv', 'text/csv', csv);
+}
+function exportJSON(key) {
+  const rows = state[key].rows;
+  if (!rows.length) return alert('No data to export.');
+  download(TABLE_MAP[key] + '_export.json', 'application/json', JSON.stringify(rows, null, 2));
+}
+function download(name, type, content) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([content], { type }));
+  a.download = name; a.click();
+}
+
+// ── RPC ──────────────────────────────────────────────────────────────────────
+async function runRPC() {
+  const subject = document.getElementById('rpc-subject').value;
+  const limit   = parseInt(document.getElementById('rpc-limit').value) || 5;
+  const out     = document.getElementById('rpc-output');
+  out.innerHTML = '<div style="color:var(--muted);font-size:.85rem;"><span class="spinner"></span> Calling RPC…</div>';
+
+  const { data, error } = await sb.rpc('get_random_questions', {
+    subj_param: subject,
+    lim_param: limit
+  });
+
+  if (error) {
+    out.innerHTML = `<div class="blocked-card"><div class="icon">⚠️</div><div class="title">RPC Error</div><div class="msg">${error.message}</div></div>`;
+    return;
+  }
+
+  if (!data || data.length === 0) {
+    out.innerHTML = `<div class="blocked-card"><div class="icon">📭</div><div class="title">No results</div><div class="msg">RPC returned 0 rows for subject="${subject}"</div></div>`;
+    return;
+  }
+
+  const cols = Object.keys(data[0]);
+  const rows = data.map(r => {
+    const cells = cols.map(c => `<td title="${r[c] ?? ''}">${formatCell(c, r[c]) ?? ''}</td>`);
+    return `<tr>${cells.join('')}</tr>`;
+  }).join('');
+  out.innerHTML = `
+    <div class="table-wrap">
+      <div class="table-scroll">
+        <table>
+          <thead><tr>${cols.map(c=>`<th>${c}</th>`).join('')}</tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+      <div class="table-footer">
+        <span>${data.length} rows returned from RPC</span>
+        <button class="export-btn" onclick='downloadRPC(${JSON.stringify(data)})'>⬇ JSON</button>
+      </div>
+    </div>`;
+}
+function downloadRPC(data) {
+  download('rpc_get_random_questions.json', 'application/json', JSON.stringify(data, null, 2));
+}
+
+// ── SCHEMA DUMP ──────────────────────────────────────────────────────────────
+function buildSchemaDump() {
+  const el = document.getElementById('schema-dump');
+  el.innerHTML = '';
+  ['profiles','questions','staging','results'].forEach(key => {
+    const s = state[key];
+    const tbl = TABLE_MAP[key];
+    let html = `<div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.2rem 1.5rem;">`;
+    html += `<h4 style="font-size:.9rem;margin-bottom:.8rem;"><code>${tbl}</code></h4>`;
+    if (s.error) {
+      html += `<div class="blocked" style="font-size:.82rem;">🔒 ${s.error.message}</div>`;
+    } else if (s.rows.length === 0) {
+      html += `<div style="color:var(--muted);font-size:.82rem;">Table is empty — no schema inferrable</div>`;
+    } else {
+      const row = s.rows[0];
+      html += Object.entries(row).map(([col, val]) => {
+        const type = val === null ? 'null' : Array.isArray(val) ? 'array' : typeof val;
+        return `<div class="kv-row"><span class="kv-key">${col}</span><span class="kv-val" style="color:var(--accent);font-family:monospace;">${type}</span></div>`;
+      }).join('');
+    }
+    html += `</div>`;
+    el.innerHTML += html;
+  });
+}
+
+// ── START ────────────────────────────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>
