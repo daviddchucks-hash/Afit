@@ -290,7 +290,12 @@
       <div class="search-toggle">
         <button class="toggle-btn active" id="tog-email" onclick="setSearchMode('email')">📧 Search by Email</button>
         <button class="toggle-btn"        id="tog-name"  onclick="setSearchMode('name')">👤 Search by Name</button>
+        <button class="toggle-btn"        id="tog-id"    onclick="setSearchMode('id')">🆔 Search by User ID</button>
       </div>
+      <p style="font-size:.75rem;color:var(--muted);margin:-.4rem 0 .8rem;">
+        Ghost-mode users are hidden from email/name search and from every user list in this app —
+        the only way to find or manage them is by their exact User ID.
+      </p>
 
       <div class="form-group">
         <label id="search-label">Email Address</label>
@@ -336,6 +341,18 @@
           <button class="btn btn-primary btn-sm" style="width:auto;background:#7c3aed;" id="btn-grant-admin" onclick="grantAdmin()">🛡️ Grant Admin</button>
           <button class="btn btn-primary btn-sm" style="width:auto;background:#2563eb;" id="btn-grant-jnr" onclick="grantJnrAdmin()">🔹 Grant Jnr Admin</button>
           <button class="btn btn-gray btn-sm" id="btn-remove-admin" onclick="removeAdminRole()">Remove Role</button>
+        </div>
+        <div class="divider"></div>
+        <div class="card-title" style="font-size:.88rem;margin-bottom:.8rem;">👻 Ghost Mode</div>
+        <p style="font-size:.78rem;color:var(--muted);margin-bottom:.8rem;line-height:1.5;">
+          Hides this user from every search and user list in the app (admin panel, this tool, DB explorer)
+          and wipes their email from the profile. They keep logging in and using their existing access exactly
+          as before — nothing new is tracked about them going forward. Once ghosted, they can only be found
+          again by their exact User ID.
+        </p>
+        <div class="action-row">
+          <button class="btn btn-primary btn-sm" style="width:auto;background:#4b5563;" id="btn-grant-ghost" onclick="grantGhostMode()">👻 Grant Ghost Mode</button>
+          <button class="btn btn-gray btn-sm" id="btn-remove-ghost" onclick="removeGhostMode()">Remove Ghost Mode</button>
         </div>
         <div class="divider"></div>
         <div class="card-title" style="font-size:.88rem;margin-bottom:.8rem;color:var(--red);">⚠️ Danger Zone</div>
@@ -486,16 +503,17 @@ function hideAlert(id) {
 }
 
 // ── SINGLE USER ──────────────────────────────────────────────────────────────
-let searchMode = 'email'; // 'email' | 'name'
+let searchMode = 'email'; // 'email' | 'name' | 'id'
 
 function setSearchMode(mode) {
   searchMode = mode;
   document.getElementById('tog-email').classList.toggle('active', mode === 'email');
   document.getElementById('tog-name').classList.toggle('active',  mode === 'name');
+  document.getElementById('tog-id').classList.toggle('active',    mode === 'id');
   const inp = document.getElementById('search-email');
   document.getElementById('search-label').textContent =
-    mode === 'email' ? 'Email Address' : 'Full Name (or part of it)';
-  inp.placeholder = mode === 'email' ? 'e.g. john.doe@gmail.com' : 'e.g. Chukwuemeka';
+    mode === 'email' ? 'Email Address' : mode === 'name' ? 'Full Name (or part of it)' : 'User ID (UUID)';
+  inp.placeholder = mode === 'email' ? 'e.g. john.doe@gmail.com' : mode === 'name' ? 'e.g. Chukwuemeka' : 'e.g. 3f2a1c9e-....';
   inp.value = '';
   clearResult();
 }
@@ -521,12 +539,31 @@ async function searchUser() {
   hideAlert('alert-single');
   clearResult();
 
-  if (searchMode === 'email') {
-    // ── Email search: exact single match ──
+  if (searchMode === 'id') {
+    // ── ID search: exact match, bypasses ghost-mode hiding (the only way to
+    //    find/manage a ghosted user is by their exact ID) ──
+    const { data, error } = await sb
+      .from('profiles')
+      .select('*')
+      .eq('id', raw)
+      .maybeSingle();
+
+    btn.innerHTML = 'Search User';
+    btn.disabled  = false;
+
+    if (error) { showAlert('alert-single','alert-error','Error: ' + error.message); return; }
+    if (!data)  { showAlert('alert-single','alert-error','No user found with that ID.'); return; }
+    currentUser = data;
+    renderResultCard(data);
+
+  } else if (searchMode === 'email') {
+    // ── Email search: exact single match (ghost users have no email, so
+    //    they never surface here) ──
     const { data, error } = await sb
       .from('profiles')
       .select('*')
       .ilike('email', raw.toLowerCase())
+      .or('ghost_mode.is.null,ghost_mode.eq.false')
       .limit(1)
       .maybeSingle();
 
@@ -539,11 +576,12 @@ async function searchUser() {
     renderResultCard(data);
 
   } else {
-    // ── Name search: partial match, may return multiple ──
+    // ── Name search: partial match, may return multiple (ghost users excluded) ──
     const { data, error } = await sb
       .from('profiles')
       .select('*')
       .ilike('full_name', '%' + raw + '%')
+      .or('ghost_mode.is.null,ghost_mode.eq.false')
       .order('full_name', { ascending: true })
       .limit(20);
 
@@ -632,6 +670,9 @@ function renderResultCard(u) {
   document.getElementById('btn-grant-jnr').disabled    = u.role === 'jnr-admin' || u.role === 'admin';
   document.getElementById('btn-remove-admin').disabled = !u.role;
 
+  document.getElementById('btn-grant-ghost').disabled  = !!u.ghost_mode;
+  document.getElementById('btn-remove-ghost').disabled = !u.ghost_mode;
+
   const rc = document.getElementById('result-card');
   rc.className = 'result-card visible ' + (u.has_paid ? 'premium-on' : 'premium-off');
 }
@@ -656,6 +697,68 @@ async function setUserRole(role, verbPast) {
 function grantAdmin()      { setUserRole('admin', 'Granted Super Admin access'); }
 function grantJnrAdmin()   { setUserRole('jnr-admin', 'Granted Junior Admin access'); }
 function removeAdminRole() { setUserRole(null, 'Admin role removed'); }
+
+// ── GHOST MODE ────────────────────────────────────────────────────────────────
+async function grantGhostMode() {
+  if (!currentUser) return;
+  const email = currentUser.email;
+  const userId = currentUser.id;
+
+  if (!confirm(
+    `Ghost "${email}"?\n\n` +
+    `This wipes their email from the profile, deletes all of their existing exam results, and removes them ` +
+    `from every search/list in the app. They keep their current login, premium status and role — but from now ` +
+    `on the ONLY way to find them again is by pasting this exact User ID:\n\n${userId}\n\n` +
+    `Make sure you've copied that ID somewhere safe before continuing.`
+  )) return;
+
+  const btn = document.getElementById('btn-grant-ghost');
+  btn.innerHTML = '<span class="spin"></span> Ghosting…';
+  btn.disabled = true;
+
+  // Wipe existing exam results so nothing traceable to them remains.
+  const { error: resultsErr } = await sb.from('results').delete().eq('student_id', userId);
+  if (resultsErr) {
+    btn.innerHTML = '👻 Grant Ghost Mode';
+    btn.disabled = false;
+    showAlert('alert-single', 'alert-error', '✗ Failed to clear exam results: ' + resultsErr.message);
+    return;
+  }
+
+  const { error } = await sb.from('profiles')
+    .update({ ghost_mode: true, email: null })
+    .eq('id', userId);
+
+  btn.innerHTML = '👻 Grant Ghost Mode';
+  btn.disabled = false;
+
+  if (error) {
+    showAlert('alert-single', 'alert-error', '✗ Ghost mode failed: ' + error.message);
+    return;
+  }
+
+  currentUser.ghost_mode = true;
+  currentUser.email = null;
+  renderResultCard(currentUser);
+  showAlert('alert-single', 'alert-success',
+    `✓ User is now ghosted. Save this ID to find them again: ${userId}`);
+  addLog('role', `Granted Ghost Mode → ${userId}`);
+}
+
+async function removeGhostMode() {
+  if (!currentUser) return;
+  if (!confirm('Remove Ghost Mode for this user? They will reappear in search results and user lists again (their email stays blank — re-enter it separately if needed).')) return;
+
+  const { error } = await sb.from('profiles').update({ ghost_mode: false }).eq('id', currentUser.id);
+  if (error) {
+    showAlert('alert-single', 'alert-error', '✗ Failed: ' + error.message);
+    return;
+  }
+  currentUser.ghost_mode = false;
+  renderResultCard(currentUser);
+  showAlert('alert-single', 'alert-success', '✓ Ghost Mode removed.');
+  addLog('role', `Removed Ghost Mode → ${currentUser.id}`);
+}
 
 // ── DELETE USER (permanently) ────────────────────────────────────────────────
 async function deleteUserCompletely() {

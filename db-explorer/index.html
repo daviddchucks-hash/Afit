@@ -540,7 +540,10 @@ async function fetchTable(key) {
     const total = count || 0;
     const chunks = Math.max(1, Math.ceil(total / 1000));
     for (let i = 0; i < chunks; i++) {
-      const { data, error } = await sb.from(tbl).select('*').range(i * 1000, (i + 1) * 1000 - 1);
+      let q = sb.from(tbl).select('*').range(i * 1000, (i + 1) * 1000 - 1);
+      // Ghost-mode users are excluded from every table dump in this explorer.
+      if (tbl === 'profiles') q = q.or('ghost_mode.is.null,ghost_mode.eq.false');
+      const { data, error } = await q;
       if (error) { fetchError = error; break; }
       if (data) allRows = allRows.concat(data);
     }

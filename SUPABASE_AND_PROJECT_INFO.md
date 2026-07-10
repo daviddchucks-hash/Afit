@@ -34,10 +34,20 @@ Stores one row per registered user. Created/updated during the bio-data onboardi
 | `course_applied` | e.g. "Engineering", "International Relations", "Accounting" |
 | `state_of_origin` | Bio-data form input |
 | `jamb_score` | Integer — used in aggregate score calculation (`jamb_score / 8 + exam_score`) |
-| `role` | `'student'` or `'admin'` |
+| `role` | `null` (student), `'jnr-admin'`, or `'admin'` |
 | `has_paid` | Boolean — `false` by default; set to `true` after Paystack payment webhook fires |
 | `tests_taken` | Integer (legacy counter — actual test count is derived from the `results` table) |
 | `current_session_token` | Cryptographically secure token — used for single-device lockout |
+| `ghost_mode` | Boolean, default `false`. **Requires manual migration — see below.** When `true`: user is excluded from every listing/search query in `admin/`, `premium-grant/`, and `db-explorer/`; their `email` is cleared; they keep logging in and using their existing access normally. Managed from `premium-grant/index.html` → "Ghost Mode". Once ghosted, find them again only via exact User ID search. |
+
+#### ⚠️ Required one-time migration for Ghost Mode
+Run this once in the Supabase SQL editor (Dashboard → SQL Editor) — it has not been run automatically because this app has no DB/migration access, only the anon key:
+
+```sql
+alter table profiles add column if not exists ghost_mode boolean not null default false;
+```
+
+Until this column exists, the Ghost Mode buttons in `premium-grant/index.html` will fail with a "column ghost_mode does not exist" error. All other features (grant/revoke premium, admin roles, delete user) work without it.
 
 ---
 
