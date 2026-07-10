@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SQL Console — AFIT Admin</title>
+<style>
+  :root { --bg:#0f172a; --panel:#1e293b; --border:#334155; --text:#e2e8f0; --muted:#94a3b8; --accent:#2563eb; --danger:#dc2626; --success:#16a34a; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height:100vh; padding: 2rem 1rem; }
+  .wrap { max-width: 900px; margin: 0 auto; }
+  h1 { font-size: 1.4rem; margin-bottom: .25rem; }
+  p.sub { color: var(--muted); margin-top:0; font-size: .9rem; }
+  .warn { background: rgba(220,38,38,.12); border: 1px solid var(--danger); color: #fca5a5; padding: .8rem 1rem; border-radius: 10px; font-size: .85rem; margin-bottom: 1.5rem; line-height:1.5; }
+  textarea { width: 100%; min-height: 160px; background: #0b1220; color: #d1fae5; border: 1px solid var(--border); border-radius: 10px; padding: 1rem; font-family: 'Fira Code', Consolas, monospace; font-size: .9rem; resize: vertical; }
+  .row { display:flex; gap: .75rem; margin-top: 1rem; align-items:center; flex-wrap: wrap; }
+  button { padding: .7rem 1.4rem; border-radius: 10px; border: none; font-weight: 700; cursor: pointer; font-size: .9rem; }
+  #run-btn { background: var(--accent); color: white; }
+  #run-btn:disabled { opacity:.5; cursor:not-allowed; }
+  .confirm-check { display:flex; align-items:center; gap:.5rem; color: var(--muted); font-size:.85rem; }
+  .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 1rem; margin-top: 1.5rem; }
+  pre { white-space: pre-wrap; word-break: break-word; font-size: .82rem; margin:0; }
+  .ok { color: #86efac; }
+  .err { color: #fca5a5; }
+  table { border-collapse: collapse; width:100%; margin-top:.5rem; font-size: .8rem; }
+  th, td { border: 1px solid var(--border); padding: .4rem .6rem; text-align:left; }
+  th { background: #0b1220; }
+  .history-item { font-family: monospace; font-size: .78rem; color: var(--muted); padding: .3rem 0; border-bottom: 1px dashed var(--border); cursor:pointer; }
+  .history-item:hover { color: var(--text); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🛠️ SQL Console</h1>
+  <p class="sub">Runs raw SQL directly against your Supabase Postgres database.</p>
+
+  <div class="warn">
+    ⚠️ This page executes <strong>any SQL you type</strong> — including <code>DROP</code>, <code>DELETE</code>, <code>UPDATE</code> with no WHERE clause, or reading every table in the database. It uses the same public anon key as the rest of the site, and the RPC function backing this page has no access checks: <strong>anyone who knows this URL can run any SQL against your project too</strong>. Do not share this URL, and consider removing this page (and the <code>exec_sql</code> function in Supabase) once you're done with bulk edits.
+  </div>
+
+  <textarea id="sql-input" placeholder="select * from profiles limit 10;"></textarea>
+
+  <div class="row">
+    <button id="run-btn">▶ Run SQL</button>
+    <label class="confirm-check">
+      <input type="checkbox" id="confirm-danger"> I understand this can permanently change or delete data
+    </label>
+  </div>
+
+  <div class="panel" id="result-panel" style="display:none;">
+    <h3 style="margin-top:0; font-size:1rem;">Result</h3>
+    <div id="result-body"></div>
+  </div>
+
+  <div class="panel">
+    <h3 style="margin-top:0; font-size:1rem;">Recent queries (this browser only)</h3>
+    <div id="history-body" style="color:var(--muted); font-size:.85rem;">No queries run yet.</div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  const SUPABASE_URL = 'https://kvlishlwkxdnlbatepsr.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt2bGlzaGx3a3hkbmxiYXRlcHNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk1NjMxNjIsImV4cCI6MjA5NTEzOTE2Mn0.tcl14-RfH6C_04gOm8T_cu9PlEFOmWM_BxD0PVIoXHQ';
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  const HISTORY_KEY = 'afit_sql_console_history';
+  function loadHistory() {
+    try { return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]'); } catch { return []; }
+  }
+  function saveHistory(list) {
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(list.slice(0, 25)));
+  }
+  function renderHistory() {
+    const list = loadHistory();
+    const body = document.getElementById('history-body');
+    if (!list.length) { body.innerHTML = 'No queries run yet.'; return; }
+    body.innerHTML = list.map((q, i) =>
+      `<div class="history-item" data-i="${i}">${escHtml(q.slice(0, 140))}</div>`
+    ).join('');
+    body.querySelectorAll('.history-item').forEach(el => {
+      el.addEventListener('click', () => {
+        document.getElementById('sql-input').value = list[+el.dataset.i];
+      });
+    });
+  }
+  function escHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+  renderHistory();
+
+  document.getElementById('run-btn').addEventListener('click', async () => {
+    const sql = document.getElementById('sql-input').value.trim();
+    const confirmed = document.getElementById('confirm-danger').checked;
+    const panel = document.getElementById('result-panel');
+    const body = document.getElementById('result-body');
+    panel.style.display = 'block';
+
+    if (!sql) { body.innerHTML = '<p class="err">Enter a SQL statement first.</p>'; return; }
+    if (!confirmed) { body.innerHTML = '<p class="err">Check the confirmation box before running SQL.</p>'; return; }
+
+    const btn = document.getElementById('run-btn');
+    btn.disabled = true;
+    btn.textContent = 'Running…';
+    body.innerHTML = '<p style="color:var(--muted);">Running…</p>';
+
+    const { data, error } = await sb.rpc('exec_sql', { sql_query: sql });
+
+    btn.disabled = false;
+    btn.textContent = '▶ Run SQL';
+
+    if (error) {
+      body.innerHTML = `<p class="err">✗ ${escHtml(error.message)}</p>`;
+      return;
+    }
+
+    const history = loadHistory();
+    history.unshift(sql);
+    saveHistory(history);
+    renderHistory();
+
+    if (Array.isArray(data) && data.length > 0 && typeof data[0] === 'object') {
+      const cols = Object.keys(data[0]);
+      body.innerHTML = `
+        <p class="ok">✓ ${data.length} row(s) returned</p>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead><tr>${cols.map(c => `<th>${escHtml(c)}</th>`).join('')}</tr></thead>
+            <tbody>
+              ${data.map(row => `<tr>${cols.map(c => `<td>${escHtml(row[c] === null ? 'NULL' : JSON.stringify(row[c]))}</td>`).join('')}</tr>`).join('')}
+            </tbody>
+          </table>
+        </div>`;
+    } else if (Array.isArray(data) && data.length === 0) {
+      body.innerHTML = '<p class="ok">✓ Query ran successfully — 0 rows returned (this is normal for INSERT/UPDATE/DELETE/DDL).</p>';
+    } else {
+      body.innerHTML = `<pre class="ok">✓ ${escHtml(JSON.stringify(data, null, 2))}</pre>`;
+    }
+  });
+</script>
+</body>
+</html>
