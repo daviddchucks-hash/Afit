@@ -691,9 +691,13 @@ async function setUserRole(role, verbPast) {
   const label = role || 'Student';
   if (!confirm(`Set ${currentUser.email}'s role to "${label}"?`)) return;
 
-  const { error } = await sb.from('profiles').update({ role }).eq('id', currentUser.id);
+  const { data, error } = await sb.from('profiles').update({ role }).eq('id', currentUser.id).select('id');
   if (error) {
     showAlert('alert-single', 'alert-error', '✗ Role update failed: ' + error.message);
+    return;
+  }
+  if (!data || data.length === 0) {
+    showAlert('alert-single', 'alert-error', '✗ Nothing was saved — a Row Level Security policy likely blocked this write. No database change was made.');
     return;
   }
   currentUser.role = role;
@@ -733,15 +737,20 @@ async function grantGhostMode() {
     return;
   }
 
-  const { error } = await sb.from('profiles')
+  const { data, error } = await sb.from('profiles')
     .update({ ghost_mode: true, email: null })
-    .eq('id', userId);
+    .eq('id', userId)
+    .select('id');
 
   btn.innerHTML = '👻 Grant Ghost Mode';
   btn.disabled = false;
 
   if (error) {
     showAlert('alert-single', 'alert-error', '✗ Ghost mode failed: ' + error.message);
+    return;
+  }
+  if (!data || data.length === 0) {
+    showAlert('alert-single', 'alert-error', '✗ Nothing was saved — a Row Level Security policy likely blocked this write. No database change was made.');
     return;
   }
 
@@ -757,9 +766,13 @@ async function removeGhostMode() {
   if (!currentUser) return;
   if (!confirm('Remove Ghost Mode for this user? They will reappear in search results and user lists again (their email stays blank — re-enter it separately if needed).')) return;
 
-  const { error } = await sb.from('profiles').update({ ghost_mode: false }).eq('id', currentUser.id);
+  const { data, error } = await sb.from('profiles').update({ ghost_mode: false }).eq('id', currentUser.id).select('id');
   if (error) {
     showAlert('alert-single', 'alert-error', '✗ Failed: ' + error.message);
+    return;
+  }
+  if (!data || data.length === 0) {
+    showAlert('alert-single', 'alert-error', '✗ Nothing was saved — a Row Level Security policy likely blocked this write. No database change was made.');
     return;
   }
   currentUser.ghost_mode = false;
@@ -789,7 +802,7 @@ async function deleteUserCompletely() {
   btn.disabled = true;
 
   // 1. Delete every exam result belonging to this user.
-  const { error: resultsErr } = await sb.from('results').delete().eq('student_id', userId);
+  const { error: resultsErr } = await sb.from('results').delete().eq('student_id', userId).select('id');
   if (resultsErr) {
     btn.innerHTML = '🗑️ Delete User Permanently';
     btn.disabled = false;
@@ -802,13 +815,17 @@ async function deleteUserCompletely() {
   await sb.from('profiles').update({ current_session_token: null, has_paid: false, role: null }).eq('id', userId);
 
   // 3. Delete the profile row itself.
-  const { error: profileErr } = await sb.from('profiles').delete().eq('id', userId);
+  const { data: deletedRows, error: profileErr } = await sb.from('profiles').delete().eq('id', userId).select('id');
 
   btn.innerHTML = '🗑️ Delete User Permanently';
   btn.disabled = false;
 
   if (profileErr) {
     showAlert('alert-single', 'alert-error', '✗ Exam results were removed, but the profile could not be deleted: ' + profileErr.message);
+    return;
+  }
+  if (!deletedRows || deletedRows.length === 0) {
+    showAlert('alert-single', 'alert-error', '✗ The profile was NOT deleted — a Row Level Security policy is likely blocking anonymous deletes on "profiles". No database change was made to the profile row.');
     return;
   }
 
@@ -843,13 +860,23 @@ async function revokePremium() {
 
 // ── CORE UPDATE ──────────────────────────────────────────────────────────────
 async function setPremium(userId, email, value, alertId, onSuccess) {
-  const { error } = await sb
+  // .select() forces Supabase to return the rows it actually changed. Without
+  // it, a Row Level Security policy can silently block the write (0 rows
+  // affected) while still reporting no error — the tool would then show a
+  // false "success" even though nothing was saved to the database.
+  const { data, error } = await sb
     .from('profiles')
     .update({ has_paid: value })
-    .eq('id', userId);
+    .eq('id', userId)
+    .select('id,has_paid');
 
   if (error) {
     showAlert(alertId, 'alert-error', '✗ Update failed: ' + error.message);
+    return;
+  }
+  if (!data || data.length === 0) {
+    showAlert(alertId, 'alert-error',
+      '✗ Nothing was saved — Supabase silently blocked this write (likely a Row Level Security policy on "profiles" is rejecting anonymous updates). No database change was made.');
     return;
   }
 
@@ -897,9 +924,12 @@ async function runBulk(action) {
       continue;
     }
 
-    const { error: ue } = await sb.from('profiles').update({ has_paid: action === 'grant' }).eq('id', prof.id);
+    const { data: updRows, error: ue } = await sb.from('profiles').update({ has_paid: action === 'grant' }).eq('id', prof.id).select('id');
     if (ue) {
       rows.push({ email, cls: 'error', icon: '✗', msg: ue.message });
+      failed++;
+    } else if (!updRows || updRows.length === 0) {
+      rows.push({ email, cls: 'error', icon: '✗', msg: 'Blocked by Row Level Security — nothing saved' });
       failed++;
     } else {
       const verb = action === 'grant' ? 'Premium granted' : 'Premium revoked';
@@ -987,9 +1017,13 @@ async function verifyOTP() {
     document.getElementById('self-done-msg').innerHTML =
       `You are already a Premium member, <strong>${prof.full_name || email}</strong>! Head to your dashboard to start your exam.`;
   } else {
-    const { error: ue } = await sb.from('profiles').update({ has_paid: true }).eq('id', userId);
+    const { data: updRows, error: ue } = await sb.from('profiles').update({ has_paid: true }).eq('id', userId).select('id');
     if (ue) {
       showAlert('alert-self','alert-error','✗ Logged in OK but update failed: ' + ue.message);
+      return;
+    }
+    if (!updRows || updRows.length === 0) {
+      showAlert('alert-self','alert-error','✗ Logged in OK but nothing was saved — a Row Level Security policy is blocking this update.');
       return;
     }
     document.getElementById('self-done-msg').innerHTML =
