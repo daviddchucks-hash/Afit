@@ -330,6 +330,22 @@
           <button class="btn btn-red   btn-sm" id="btn-revoke" onclick="revokePremium()">✗ Revoke Premium</button>
           <button class="btn btn-gray  btn-sm" onclick="clearResult()">✕ Clear</button>
         </div>
+        <div class="divider"></div>
+        <div class="card-title" style="font-size:.88rem;margin-bottom:.8rem;">🛡️ Admin Role</div>
+        <div class="action-row">
+          <button class="btn btn-primary btn-sm" style="width:auto;background:#7c3aed;" id="btn-grant-admin" onclick="grantAdmin()">🛡️ Grant Admin</button>
+          <button class="btn btn-primary btn-sm" style="width:auto;background:#2563eb;" id="btn-grant-jnr" onclick="grantJnrAdmin()">🔹 Grant Jnr Admin</button>
+          <button class="btn btn-gray btn-sm" id="btn-remove-admin" onclick="removeAdminRole()">Remove Role</button>
+        </div>
+        <div class="divider"></div>
+        <div class="card-title" style="font-size:.88rem;margin-bottom:.8rem;color:var(--red);">⚠️ Danger Zone</div>
+        <p style="font-size:.78rem;color:var(--muted);margin-bottom:.8rem;line-height:1.5;">
+          Permanently deletes this user's profile, all of their exam results, and immediately invalidates their
+          active login session. This cannot be undone.
+        </p>
+        <div class="action-row">
+          <button class="btn btn-red btn-sm" id="btn-delete-user" onclick="deleteUserCompletely()">🗑️ Delete User Permanently</button>
+        </div>
       </div>
     </div>
   </div>
@@ -612,8 +628,90 @@ function renderResultCard(u) {
   document.getElementById('btn-grant').disabled  = !!u.has_paid;
   document.getElementById('btn-revoke').disabled = !u.has_paid;
 
+  document.getElementById('btn-grant-admin').disabled  = u.role === 'admin';
+  document.getElementById('btn-grant-jnr').disabled    = u.role === 'jnr-admin' || u.role === 'admin';
+  document.getElementById('btn-remove-admin').disabled = !u.role;
+
   const rc = document.getElementById('result-card');
   rc.className = 'result-card visible ' + (u.has_paid ? 'premium-on' : 'premium-off');
+}
+
+// ── ADMIN ROLE MANAGEMENT ────────────────────────────────────────────────────
+async function setUserRole(role, verbPast) {
+  if (!currentUser) return;
+  const label = role || 'Student';
+  if (!confirm(`Set ${currentUser.email}'s role to "${label}"?`)) return;
+
+  const { error } = await sb.from('profiles').update({ role }).eq('id', currentUser.id);
+  if (error) {
+    showAlert('alert-single', 'alert-error', '✗ Role update failed: ' + error.message);
+    return;
+  }
+  currentUser.role = role;
+  renderResultCard(currentUser);
+  showAlert('alert-single', 'alert-success', `✓ ${verbPast} → ${currentUser.email}`);
+  addLog('role', `${verbPast} → ${currentUser.email}`);
+}
+
+function grantAdmin()      { setUserRole('admin', 'Granted Super Admin access'); }
+function grantJnrAdmin()   { setUserRole('jnr-admin', 'Granted Junior Admin access'); }
+function removeAdminRole() { setUserRole(null, 'Admin role removed'); }
+
+// ── DELETE USER (permanently) ────────────────────────────────────────────────
+async function deleteUserCompletely() {
+  if (!currentUser) return;
+  const email = currentUser.email;
+  const userId = currentUser.id;
+
+  const typed = prompt(
+    `This will permanently delete "${email}" — their profile, exam results and active session.\n\n` +
+    `This cannot be undone. Type the user's email address to confirm:`
+  );
+  if (typed === null) return;
+  if (typed.trim().toLowerCase() !== (email || '').toLowerCase()) {
+    showAlert('alert-single', 'alert-error', '✗ Deletion cancelled — email did not match.');
+    return;
+  }
+
+  const btn = document.getElementById('btn-delete-user');
+  btn.innerHTML = '<span class="spin"></span> Deleting…';
+  btn.disabled = true;
+
+  // 1. Delete every exam result belonging to this user.
+  const { error: resultsErr } = await sb.from('results').delete().eq('student_id', userId);
+  if (resultsErr) {
+    btn.innerHTML = '🗑️ Delete User Permanently';
+    btn.disabled = false;
+    showAlert('alert-single', 'alert-error', '✗ Failed to delete exam results: ' + resultsErr.message);
+    return;
+  }
+
+  // 2. Invalidate any active login session immediately (in case the profile
+  //    delete below is blocked by a foreign key / RLS policy on some setups).
+  await sb.from('profiles').update({ current_session_token: null, has_paid: false, role: null }).eq('id', userId);
+
+  // 3. Delete the profile row itself.
+  const { error: profileErr } = await sb.from('profiles').delete().eq('id', userId);
+
+  btn.innerHTML = '🗑️ Delete User Permanently';
+  btn.disabled = false;
+
+  if (profileErr) {
+    showAlert('alert-single', 'alert-error', '✗ Exam results were removed, but the profile could not be deleted: ' + profileErr.message);
+    return;
+  }
+
+  showAlert('alert-single', 'alert-success', `✓ ${email} was permanently deleted (profile + all results). Their session was invalidated.`);
+  addLog('revoke', `Deleted user → ${email}`);
+  clearResult();
+
+  // Note: this removes the user everywhere our app stores their data (profile
+  // + results) and immediately signs them out. It does NOT remove the row from
+  // Supabase's internal auth.users table — that requires the project's secret
+  // service_role key, which must never be placed in a public HTML page. To also
+  // purge the auth account, delete it from the Supabase Dashboard → Authentication
+  // → Users, or wire up a Supabase Edge Function that holds the service_role key
+  // as a server-side secret and calls supabase.auth.admin.deleteUser(userId).
 }
 
 async function grantPremium() {
