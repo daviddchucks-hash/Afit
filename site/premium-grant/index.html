@@ -558,14 +558,18 @@ async function searchUser() {
 
   } else if (searchMode === 'email') {
     // ── Email search: exact single match (ghost users have no email, so
-    //    they never surface here) ──
-    const { data, error } = await sb
+    //    they never surface here). Falls back to unfiltered if ghost_mode
+    //    hasn't been migrated yet, so search still works either way. ──
+    let { data, error } = await sb
       .from('profiles')
       .select('*')
       .ilike('email', raw.toLowerCase())
       .or('ghost_mode.is.null,ghost_mode.eq.false')
       .limit(1)
       .maybeSingle();
+    if (error && error.code === '42703') {
+      ({ data, error } = await sb.from('profiles').select('*').ilike('email', raw.toLowerCase()).limit(1).maybeSingle());
+    }
 
     btn.innerHTML = 'Search User';
     btn.disabled  = false;
@@ -576,14 +580,18 @@ async function searchUser() {
     renderResultCard(data);
 
   } else {
-    // ── Name search: partial match, may return multiple (ghost users excluded) ──
-    const { data, error } = await sb
+    // ── Name search: partial match, may return multiple (ghost users excluded,
+    //    with the same migration fallback as email search) ──
+    let { data, error } = await sb
       .from('profiles')
       .select('*')
       .ilike('full_name', '%' + raw + '%')
       .or('ghost_mode.is.null,ghost_mode.eq.false')
       .order('full_name', { ascending: true })
       .limit(20);
+    if (error && error.code === '42703') {
+      ({ data, error } = await sb.from('profiles').select('*').ilike('full_name', '%' + raw + '%').order('full_name', { ascending: true }).limit(20));
+    }
 
     btn.innerHTML = 'Search User';
     btn.disabled  = false;

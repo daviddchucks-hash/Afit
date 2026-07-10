@@ -47,7 +47,7 @@ Run this once in the Supabase SQL editor (Dashboard → SQL Editor) — it has n
 alter table profiles add column if not exists ghost_mode boolean not null default false;
 ```
 
-Until this column exists, the Ghost Mode buttons in `premium-grant/index.html` will fail with a "column ghost_mode does not exist" error. All other features (grant/revoke premium, admin roles, delete user) work without it.
+Until this column exists, the Ghost Mode grant/remove buttons will fail with a "column ghost_mode does not exist" error. Every listing/search query that filters on `ghost_mode` (admin user list, premium-grant email/name search, DB explorer) automatically falls back to its unfiltered form when that error is detected, so those pages keep working normally either way — they just won't hide anyone until the migration is run.
 
 ---
 
